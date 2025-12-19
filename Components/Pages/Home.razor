@@ -1,0 +1,17 @@
+﻿@page "/"
+@inject InsightJournal.Data.AppDbContext Db
+
+<h3>Database Status</h3>
+<p>@status</p>
+
+@code {
+    string status = "Checking database...";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Db.Database.EnsureCreatedAsync();
+
+        // Show AppData folder path
+        status = FileSystem.AppDataDirectory;
+    }
+}
