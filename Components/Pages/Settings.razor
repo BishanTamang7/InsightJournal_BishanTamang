@@ -1,6 +1,90 @@
 ﻿@page "/settings"
-<h3>Settings</h3>
+@inject ThemeService ThemeService
+
+<div class="settings-wrapper">
+    <div class="settings-container">
+        <h1 class="page-title">Settings</h1>
+
+        <!-- APPEARANCE -->
+        <div class="settings-row">
+            <div class="left">
+                <div class="row-title">
+                    <span>🎨</span>
+                    <strong>Appearance</strong>
+                </div>
+                <div class="row-content">
+                    <div class="row-heading">Theme</div>
+                    <div class="row-desc">Choose your preferred color theme</div>
+                </div>
+            </div>
+            <div class="right">
+                <button class="toggle-btn @(ThemeService.CurrentTheme == "dark" ? "active" : "")"
+                        @onclick="@(() => SetTheme("dark"))">
+                    🌙 Dark
+                </button>
+                <button class="toggle-btn @(ThemeService.CurrentTheme == "light" ? "active" : "")"
+                        @onclick="@(() => SetTheme("light"))">
+                    ☀️ Light
+                </button>
+            </div>
+        </div>
+
+        <!-- SECURITY -->
+        <div class="settings-row">
+            <div class="left">
+                <div class="row-title">
+                    <span>🔒</span>
+                    <strong>Security</strong>
+                </div>
+                <div class="row-content">
+                    <div class="row-heading">Change Password</div>
+                    <div class="row-desc">Update your app password</div>
+                </div>
+            </div>
+            <div class="right">
+                <button class="change-btn">Change</button>
+            </div>
+        </div>
+
+        <!-- EXPORT JOURNAL -->
+        <div class="settings-row">
+            <div class="left">
+                <div class="row-title">
+                    <span>📄</span>
+                    <strong>Data & Export</strong>
+                </div>
+                <div class="row-content">
+                    <div class="row-heading">Export Journal as PDF</div>
+                    <div class="row-desc">
+                        Export journal entries as a PDF file by selecting a date range
+                    </div>
+                </div>
+            </div>
+            <div class="right">
+                <button class="change-btn">Export</button>
+            </div>
+        </div>
+
+        <!-- ABOUT -->
+        <div class="settings-row">
+            <div class="left">
+                <div class="row-title">
+                    <span>ℹ️</span>
+                    <strong>About</strong>
+                </div>
+                <div class="row-content">
+                    <div class="row-heading">InsightJournal</div>
+                    <div class="row-desc">Version 1.0.0</div>
+                    <div class="row-desc">Your personal journaling companion</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
-
+    private void SetTheme(string theme)
+    {
+        ThemeService.SetTheme(theme);
+    }
 }
