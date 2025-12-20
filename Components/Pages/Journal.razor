@@ -1,6 +1,150 @@
 ﻿@page "/journal"
-<h3>Journal</h3>
+@using InsightJournal.Models
+@using InsightJournal.Services
+@inject JournalService JournalService
+@inject NavigationManager Navigation
+
+<PageTitle>Journal</PageTitle>
+
+<div class="journal-container">
+    <div class="journal-header">
+        <h2>My Journal Entries</h2>
+        <button class="btn btn-primary" @onclick="GoToNewEntry">
+            ➕ New Entry
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading">
+            <p>Loading entries...</p>
+        </div>
+    }
+    else if (entries.Count == 0)
+    {
+        <div class="empty-state">
+            <h3>No entries yet</h3>
+            <p>Start your journaling journey by creating your first entry!</p>
+            <button class="btn btn-primary" @onclick="GoToNewEntry">
+                Create First Entry
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="entries-grid">
+            @foreach (var entry in entries)
+            {
+                <div class="entry-card">
+                    <div class="entry-card-header">
+                        <h3>@entry.Title</h3>
+                        <span class="entry-date">@entry.Date.ToString("MMM dd, yyyy")</span>
+                    </div>
+
+                    <div class="entry-content">
+                        <p>@GetPreviewText(entry.Content)</p>
+                    </div>
+
+                    <div class="entry-footer">
+                        <span class="entry-time">
+                            Updated: @entry.UpdatedAt.ToString("hh:mm tt")
+                        </span>
+                        <div class="entry-actions">
+                            <button class="btn-icon btn-edit" @onclick="() => EditEntry(entry)">
+                                ✏️ Edit
+                            </button>
+                            <button class="btn-icon btn-delete" @onclick="() => ShowDeleteConfirm(entry)">
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (showDeleteModal)
+    {
+        <div class="modal-overlay" @onclick="CancelDelete">
+            <div class="modal-content" @onclick:stopPropagation>
+                <h3>Delete Entry</h3>
+                <p>Are you sure you want to delete "<strong>@entryToDelete?.Title</strong>"?</p>
+                <p class="warning-text">This action cannot be undone.</p>
+                <div class="modal-buttons">
+                    <button class="btn btn-danger" @onclick="ConfirmDelete">Yes, Delete</button>
+                    <button class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
 
 @code {
+    private List<JournalEntry> entries = new();
+    private bool isLoading = true;
+    private bool showDeleteModal = false;
+    private JournalEntry? entryToDelete;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEntries();
+    }
+
+    private async Task LoadEntries()
+    {
+        isLoading = true;
+        entries = await JournalService.GetAllEntriesAsync();
+        isLoading = false;
+    }
+
+    private void GoToNewEntry()
+    {
+        Navigation.NavigateTo("/newentry");
+    }
+
+    private void EditEntry(JournalEntry entry)
+    {
+        Navigation.NavigateTo($"/editentry/{entry.Id}");  // ← CHANGED THIS LINE
+    }
+
+    private void ShowDeleteConfirm(JournalEntry entry)
+    {
+        entryToDelete = entry;
+        showDeleteModal = true;
+    }
+
+    private void CancelDelete()
+    {
+        showDeleteModal = false;
+        entryToDelete = null;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (entryToDelete == null) return;
+
+        try
+        {
+            await JournalService.DeleteEntryAsync(entryToDelete.Id);
+            showDeleteModal = false;
+            entryToDelete = null;
+            await LoadEntries();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting entry: {ex.Message}");
+            showDeleteModal = false;
+        }
+    }
+
+    private string GetPreviewText(string content)
+    {
+        if (string.IsNullOrEmpty(content))
+            return "No content";
+
+        if (content.Length <= 150)
+            return content;
+
+        return content.Substring(0, 150) + "...";
+    }
 }

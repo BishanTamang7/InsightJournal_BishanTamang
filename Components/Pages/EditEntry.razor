@@ -1,0 +1,139 @@
+﻿@page "/editentry/{entryId:int}"
+@using InsightJournal.Models
+@using InsightJournal.Services
+@inject JournalService JournalService
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Entry</PageTitle>
+
+<div class="entry-container">
+    @if (isLoading)
+    {
+        <p>Loading...</p>
+    }
+    else if (entry == null)
+    {
+        <div class="alert alert-error">
+            ⚠️ Entry not found!
+        </div>
+    }
+    else
+    {
+        <div class="entry-header">
+            <h2>Edit Entry</h2>
+            <p class="date-display">@entry.Date.ToString("dddd, MMMM dd, yyyy")</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-error">
+                ⚠️ @errorMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success">
+                ✓ @successMessage
+            </div>
+        }
+
+        <div class="entry-form">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text"
+                       class="form-input"
+                       @bind="title"
+                       placeholder="Give your entry a title..." />
+            </div>
+
+            <div class="form-group">
+                <label>Content</label>
+                <textarea class="form-textarea"
+                          rows="15"
+                          @bind="content"
+                          placeholder="Write your thoughts here..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-success" @onclick="UpdateEntry">
+                    ✏️ Update Entry
+                </button>
+                <button class="btn btn-secondary" @onclick="Cancel">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int EntryId { get; set; }
+
+    private JournalEntry? entry;
+    private string title = "";
+    private string content = "";
+    private string? errorMessage;
+    private string? successMessage;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEntry();
+    }
+
+    private async Task LoadEntry()
+    {
+        isLoading = true;
+
+        var allEntries = await JournalService.GetAllEntriesAsync();
+        entry = allEntries.FirstOrDefault(e => e.Id == EntryId);
+
+        if (entry != null)
+        {
+            title = entry.Title;
+            content = entry.Content;
+        }
+
+        isLoading = false;
+    }
+
+    private async Task UpdateEntry()
+    {
+        errorMessage = null;
+        successMessage = null;
+
+        if (entry == null) return;
+
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            errorMessage = "Please enter a title for your entry.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            errorMessage = "Please write some content for your entry.";
+            return;
+        }
+
+        try
+        {
+            await JournalService.UpdateEntryAsync(entry.Id, title, content);
+            successMessage = "Entry updated successfully!";
+
+            await Task.Delay(1000);
+            Navigation.NavigateTo("/journal");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/journal");
+    }
+}

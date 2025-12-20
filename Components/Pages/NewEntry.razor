@@ -1,6 +1,90 @@
-﻿@page "/new_entry"
-<h3>NewEntry</h3>
+﻿@page "/newentry"
+@using InsightJournal.Models
+@using InsightJournal.Services
+@inject JournalService JournalService
+@inject NavigationManager Navigation
+
+<PageTitle>New Entry</PageTitle>
+
+<div class="entry-container">
+    <div class="entry-header">
+        <h2>New Entry</h2>
+        <p class="date-display">@DateTime.Today.ToString("dddd, MMMM dd, yyyy")</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-error">
+            ⚠️ @errorMessage
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success">
+            ✓ @successMessage
+        </div>
+    }
+
+    <div class="entry-form">
+        <div class="form-group">
+            <label>Title</label>
+            <input type="text"
+                   class="form-input"
+                   @bind="title"
+                   placeholder="Give your entry a title..." />
+        </div>
+
+        <div class="form-group">
+            <label>Content</label>
+            <textarea class="form-textarea"
+                      rows="15"
+                      @bind="content"
+                      placeholder="Write your thoughts here..."></textarea>
+        </div>
+
+        <div class="button-group">
+            <button class="btn btn-primary" @onclick="CreateEntry">
+                💾 Save Entry
+            </button>
+        </div>
+    </div>
+</div>
 
 @code {
+    private string title = "";
+    private string content = "";
+    private string? errorMessage;
+    private string? successMessage;
 
+    private async Task CreateEntry()
+    {
+        errorMessage = null;
+        successMessage = null;
+
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            errorMessage = "Please enter a title for your entry.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            errorMessage = "Please write some content for your entry.";
+            return;
+        }
+
+        try
+        {
+            await JournalService.CreateEntryAsync(title, content);
+            successMessage = "Entry created successfully!";
+
+            await Task.Delay(1000);
+            Navigation.NavigateTo("/journal");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
 }

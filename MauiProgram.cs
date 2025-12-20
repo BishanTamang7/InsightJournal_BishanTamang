@@ -19,24 +19,31 @@ namespace InsightJournal
 
             builder.Services.AddMauiBlazorWebView();
 
-            // SQLite database path
-            var dbPath = Path.Combine(
-                FileSystem.AppDataDirectory,
-                "insightjournal.db");
-            Console.WriteLine("DB PATH: " + dbPath);
+            // SQLite database setup
+            var dbPath = Path.Combine(FileSystem.AppDataDirectory, "insightjournal.db");
 
-            // EF Core connection
             builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlite($"Filename={dbPath}"));
+                options.UseSqlite($"Data Source={dbPath}"));
 
             // Register ThemeService as Singleton
             builder.Services.AddSingleton<ThemeService>();
+
+            // Register JournalService
+            builder.Services.AddScoped<JournalService>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
             builder.Logging.AddDebug();
 #endif
-            return builder.Build();
+
+            var app = builder.Build();
+
+            // Initialize database
+            var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Database.EnsureCreated();
+
+            return app;
         }
     }
 }
