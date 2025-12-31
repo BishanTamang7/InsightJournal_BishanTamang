@@ -469,9 +469,12 @@ h1:focus {
     color: #999;
 }
 
+/* Entry Actions Container - Updated for multiple buttons */
 .entry-actions {
     display: flex;
     gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 /* Button Icon */
@@ -485,20 +488,53 @@ h1:focus {
     background: transparent;
 }
 
+/* Common Button Styles for Action Buttons */
+.btn-action {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+    .btn-action:active {
+        transform: translateY(0);
+    }
+
+/* View Button */
+.btn-view {
+    background-color: #5b5fc7;
+    color: white;
+}
+
+    .btn-view:hover {
+        background-color: #4a4fb0;
+        transform: translateY(-1px);
+    }
+
+/* Edit Button - Updated styles */
 .btn-edit {
-    color: #4c51bf;
+    background-color: #38a169;
+    color: white;
 }
 
     .btn-edit:hover {
-        background: #e3f2fd;
+        background-color: #2f855a;
+        transform: translateY(-1px);
     }
 
+/* Delete Button - Updated styles */
 .btn-delete {
-    color: #e53e3e;
+    background-color: #e53e3e;
+    color: white;
 }
 
     .btn-delete:hover {
-        background: #ffebee;
+        background-color: #c53030;
+        transform: translateY(-1px);
     }
 
 /* Entry Form Container */
@@ -683,4 +719,311 @@ h1:focus {
     display: flex;
     gap: 12px;
     justify-content: flex-end;
+}
+
+
+/* ========== JOURNAL PAGE - NEW DESIGN ========== */
+.journal-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 24px;
+    background-color: var(--bg-primary);
+}
+
+.journal-header-new {
+    margin-bottom: 30px;
+}
+
+.journal-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+/* Controls Row */
+.journal-controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 250px;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 15px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    transition: border-color 0.2s;
+}
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--border-active);
+    }
+
+    .search-input::placeholder {
+        color: var(--text-secondary);
+    }
+
+.filter-dropdown {
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 150px;
+}
+
+    .filter-dropdown:hover {
+        border-color: var(--border-active);
+    }
+
+    .filter-dropdown:focus {
+        outline: none;
+        border-color: var(--border-active);
+    }
+
+/* Loading State */
+.loading-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+}
+
+/* Empty State */
+.empty-state-new {
+    text-align: center;
+    padding: 80px 20px;
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    margin-top: 20px;
+}
+
+    .empty-state-new h3 {
+        color: var(--text-primary);
+        margin-bottom: 10px;
+    }
+
+    .empty-state-new p {
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+    }
+
+.btn-new-entry {
+    padding: 12px 24px;
+    background-color: #5b5fc7;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+    .btn-new-entry:hover {
+        background-color: #4a4fb0;
+        transform: translateY(-1px);
+    }
+
+/* Entries List */
+.entries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+/* Entry Row */
+.entry-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+    .entry-row:hover {
+        border-color: var(--border-active);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+.entry-info {
+    flex: 1;
+}
+
+.entry-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: var(--text-primary);
+}
+
+.entry-meta {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 40px;
+    padding: 20px 0;
+}
+
+.pagination-btn {
+    padding: 10px 16px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 44px;
+}
+
+    .pagination-btn:hover:not(:disabled) {
+        background-color: var(--bg-tertiary);
+        border-color: var(--border-active);
+    }
+
+    .pagination-btn.active {
+        background-color: #5b5fc7;
+        color: white;
+        border-color: #5b5fc7;
+    }
+
+    .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .journal-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-input,
+    .filter-dropdown {
+        width: 100%;
+    }
+
+    .entry-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .entry-actions {
+        width: 100%;
+    }
+
+    .btn-action {
+        flex: 1;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+    }
+}
+
+/* Dark Mode Specific Adjustments */
+[data-theme="dark"] .search-input,
+[data-theme="dark"] .filter-dropdown {
+    background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .entry-row:hover {
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+}
+
+
+/* View Entry Page Styles */
+.view-content {
+    margin-top: 20px;
+}
+
+.content-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.content-body {
+    padding: 30px;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: #333;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    min-height: 200px;
+}
+
+.content-footer {
+    padding: 20px 30px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #e2e8f0;
+}
+
+.entry-timestamps {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+    .entry-timestamps span {
+        display: block;
+    }
+
+/* Dark Mode Support for View Entry */
+[data-theme="dark"] .content-card {
+    background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .content-body {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .content-footer {
+    background-color: var(--bg-tertiary);
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .entry-timestamps {
+    color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .content-body {
+        padding: 20px;
+        font-size: 1rem;
+    }
+
+    .content-footer {
+        padding: 15px 20px;
+    }
 }

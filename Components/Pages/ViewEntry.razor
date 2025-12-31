@@ -1,0 +1,79 @@
+﻿@page "/viewentry/{entryId:int}"
+@using InsightJournal.Models
+@using InsightJournal.Services
+@inject JournalService JournalService
+@inject NavigationManager Navigation
+
+<PageTitle>View Entry</PageTitle>
+
+<div class="entry-container">
+    @if (isLoading)
+    {
+        <p>Loading...</p>
+    }
+    else if (entry == null)
+    {
+        <div class="alert alert-error">
+            ⚠️ Entry not found!
+        </div>
+    }
+    else
+    {
+        <div class="entry-header">
+            <h2>@entry.Title</h2>
+            <p class="date-display">@entry.Date.ToString("dddd, MMMM dd, yyyy")</p>
+        </div>
+
+        <div class="view-content">
+            <div class="content-card">
+                <div class="content-body">
+                    @entry.Content
+                </div>
+
+                <div class="content-footer">
+                    <p class="entry-timestamps">
+                        <span>Created: @entry.CreatedAt.ToString("MMM dd, yyyy h:mm tt")</span>
+                        @if (entry.UpdatedAt != entry.CreatedAt)
+                        {
+                            <span>Last Updated: @entry.UpdatedAt.ToString("MMM dd, yyyy h:mm tt")</span>
+                        }
+                    </p>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary" @onclick="BackToJournal">
+                    ← Back to Journal
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int EntryId { get; set; }
+
+    private JournalEntry? entry;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEntry();
+    }
+
+    private async Task LoadEntry()
+    {
+        isLoading = true;
+
+        var allEntries = await JournalService.GetAllEntriesAsync();
+        entry = allEntries.FirstOrDefault(e => e.Id == EntryId);
+
+        isLoading = false;
+    }
+
+    private void BackToJournal()
+    {
+        Navigation.NavigateTo("/journal");
+    }
+}

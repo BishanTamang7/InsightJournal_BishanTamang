@@ -6,60 +6,111 @@
 
 <PageTitle>Journal</PageTitle>
 
-<div class="journal-container">
-    <div class="journal-header">
-        <h2>My Journal Entries</h2>
-        <button class="btn btn-primary" @onclick="GoToNewEntry">
-            ➕ New Entry
-        </button>
+<div class="journal-page">
+    <div class="journal-header-new">
+        <h1 class="journal-title">Journal Entries</h1>
+
+        <div class="journal-controls">
+            <input type="text"
+                   class="search-input"
+                   placeholder="Search entries by title..."
+                   @bind="searchText"
+                   @bind:event="oninput"
+                   @bind:after="FilterEntries" />
+
+            <select class="filter-dropdown" @bind="dateFilter" @bind:after="FilterEntries">
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">Last 7 days</option>
+                <option value="month">Last 30 days</option>
+                <option value="3months">Last 3 months</option>
+                <option value="year">Last Year</option>
+            </select>
+
+            <select class="filter-dropdown">
+                <option>Filter by Mood</option>
+                <option>Positive</option>
+                <option>Neutral</option>
+                <option>Negative</option>
+            </select>
+
+            <select class="filter-dropdown">
+                <option>Filter by Tags</option>
+                <option>Work</option>
+                <option>Health</option>
+                <option>Travel</option>
+                <option>Fitness</option>
+            </select>
+        </div>
     </div>
 
     @if (isLoading)
     {
-        <div class="loading">
+        <div class="loading-state">
             <p>Loading entries...</p>
         </div>
     }
-    else if (entries.Count == 0)
+    else if (filteredEntries.Count == 0)
     {
-        <div class="empty-state">
-            <h3>No entries yet</h3>
+        <div class="empty-state-new">
+            <h3>No entries found</h3>
             <p>Start your journaling journey by creating your first entry!</p>
-            <button class="btn btn-primary" @onclick="GoToNewEntry">
+            <button class="btn-new-entry" @onclick="GoToNewEntry">
                 Create First Entry
             </button>
         </div>
     }
     else
     {
-        <div class="entries-grid">
-            @foreach (var entry in entries)
+        <div class="entries-list">
+            @foreach (var entry in GetPagedEntries())
             {
-                <div class="entry-card">
-                    <div class="entry-card-header">
-                        <h3>@entry.Title</h3>
-                        <span class="entry-date">@entry.Date.ToString("MMM dd, yyyy")</span>
+                <div class="entry-row">
+                    <div class="entry-info">
+                        <h3 class="entry-title">@entry.Title</h3>
+                        <p class="entry-meta">
+                            Date: @entry.Date.ToString("yyyy-MM-dd") |
+                            Mood: @GetMoodPlaceholder() |
+                            Tags: @GetTagsPlaceholder()
+                        </p>
                     </div>
-
-                    <div class="entry-content">
-                        <p>@GetPreviewText(entry.Content)</p>
-                    </div>
-
-                    <div class="entry-footer">
-                        <span class="entry-time">
-                            Updated: @entry.UpdatedAt.ToString("hh:mm tt")
-                        </span>
-                        <div class="entry-actions">
-                            <button class="btn-icon btn-edit" @onclick="() => EditEntry(entry)">
-                                ✏️ Edit
-                            </button>
-                            <button class="btn-icon btn-delete" @onclick="() => ShowDeleteConfirm(entry)">
-                                🗑️ Delete
-                            </button>
-                        </div>
+                    <div class="entry-actions">
+                        <button class="btn-action btn-view" @onclick="() => ViewEntry(entry)">
+                            View
+                        </button>
+                        <button class="btn-action btn-edit" @onclick="() => EditEntry(entry)">
+                            Edit
+                        </button>
+                        <button class="btn-action btn-delete" @onclick="() => ShowDeleteConfirm(entry)">
+                            Delete
+                        </button>
                     </div>
                 </div>
             }
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <button class="pagination-btn"
+                    @onclick="PreviousPage"
+                    disabled="@(currentPage == 1)">
+                Previous
+            </button>
+
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                int pageNum = i;
+                <button class="pagination-btn @(currentPage == pageNum ? "active" : "")"
+                        @onclick="() => GoToPage(pageNum)">
+                    @pageNum
+                </button>
+            }
+
+            <button class="pagination-btn"
+                    @onclick="NextPage"
+                    disabled="@(currentPage == totalPages)">
+                Next
+            </button>
         </div>
     }
 
@@ -81,9 +132,17 @@
 
 @code {
     private List<JournalEntry> entries = new();
+    private List<JournalEntry> filteredEntries = new();
     private bool isLoading = true;
     private bool showDeleteModal = false;
     private JournalEntry? entryToDelete;
+    private string searchText = "";
+    private string dateFilter = "all";
+
+    // Pagination
+    private int currentPage = 1;
+    private int pageSize = 4;
+    private int totalPages => (int)Math.Ceiling(filteredEntries.Count / (double)pageSize);
 
     protected override async Task OnInitializedAsync()
     {
@@ -94,7 +153,44 @@
     {
         isLoading = true;
         entries = await JournalService.GetAllEntriesAsync();
+        FilterEntries();
         isLoading = false;
+    }
+
+    private void FilterEntries()
+    {
+        var query = entries.AsEnumerable();
+
+        // Filter by search text (title only)
+        if (!string.IsNullOrWhiteSpace(searchText))
+        {
+            query = query.Where(e => e.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Filter by date
+        var now = DateTime.Today;
+        query = dateFilter switch
+        {
+            "today" => query.Where(e => e.Date.Date == now),
+            "week" => query.Where(e => e.Date.Date >= now.AddDays(-7)),
+            "month" => query.Where(e => e.Date.Date >= now.AddDays(-30)),
+            "3months" => query.Where(e => e.Date.Date >= now.AddMonths(-3)),
+            "year" => query.Where(e => e.Date.Date >= now.AddYears(-1)),
+            _ => query
+        };
+
+        filteredEntries = query.OrderByDescending(e => e.Date).ToList();
+
+        // Reset to page 1 when filtering
+        currentPage = 1;
+    }
+
+    private List<JournalEntry> GetPagedEntries()
+    {
+        return filteredEntries
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
     }
 
     private void GoToNewEntry()
@@ -102,9 +198,14 @@
         Navigation.NavigateTo("/newentry");
     }
 
+    private void ViewEntry(JournalEntry entry)
+    {
+        Navigation.NavigateTo($"/viewentry/{entry.Id}");
+    }
+
     private void EditEntry(JournalEntry entry)
     {
-        Navigation.NavigateTo($"/editentry/{entry.Id}");  // ← CHANGED THIS LINE
+        Navigation.NavigateTo($"/editentry/{entry.Id}");
     }
 
     private void ShowDeleteConfirm(JournalEntry entry)
@@ -137,14 +238,31 @@
         }
     }
 
-    private string GetPreviewText(string content)
+    private void PreviousPage()
     {
-        if (string.IsNullOrEmpty(content))
-            return "No content";
-
-        if (content.Length <= 150)
-            return content;
-
-        return content.Substring(0, 150) + "...";
+        if (currentPage > 1)
+        {
+            currentPage--;
+        }
     }
+
+    private void NextPage()
+    {
+        if (currentPage < totalPages)
+        {
+            currentPage++;
+        }
+    }
+
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= totalPages)
+        {
+            currentPage = page;
+        }
+    }
+
+    // Placeholder methods (since Mood and Tags aren't in the model yet)
+    private string GetMoodPlaceholder() => "Neutral";
+    private string GetTagsPlaceholder() => "General";
 }
