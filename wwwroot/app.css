@@ -65,7 +65,7 @@ a, .btn-link {
 }
 
 .content {
-    padding-top: 1.1rem;
+    padding-top: 0;
 }
 
 h1:focus {
@@ -148,114 +148,209 @@ h1:focus {
     }
 }
 
-.settings-wrapper {
-    display: flex;
-    justify-content: center;
-    width: 100%;
+/* Settings page */
+.settings-page {
+    max-width: 900px;
+    margin: 0;
+    padding: 20px 0 0 24px;
     background-color: var(--bg-primary);
     min-height: 100vh;
-    transition: background-color 0.3s ease;
 }
 
-.settings-container {
+.settings-content {
     width: 100%;
-    max-width: 900px;
-    padding: 24px;
 }
 
-.page-title {
-    font-size: 28px;
+.settings-title {
+    font-size: 32px;
     font-weight: 700;
-    margin-bottom: 24px;
+    margin-bottom: 40px;
     color: var(--text-primary);
-    transition: color 0.3s ease;
 }
 
-.settings-row {
+/* Section Styles */
+.settings-section {
+    margin-bottom: 40px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+/* Setting Item */
+.setting-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--bg-secondary);
-    border-radius: 14px;
-    padding: 22px 24px;
-    margin-bottom: 33px;
-    border: 1px solid var(--border-color);
-    transition: all 0.3s ease;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border-color);
 }
 
-.left {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+    .setting-item:last-child {
+        border-bottom: none;
+    }
 
-.row-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.setting-label {
     font-size: 16px;
     color: var(--text-primary);
-    transition: color 0.3s ease;
+    font-weight: 400;
 }
 
-.row-content {
-    padding-left: 26px;
+/* Date Range Specific */
+.date-range-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
 }
 
-.row-heading {
-    font-weight: 600;
-    margin-bottom: 2px;
-    color: var(--text-primary);
-    transition: color 0.3s ease;
-}
-
-.row-desc {
-    font-size: 14px;
-    color: var(--text-secondary);
-    transition: color 0.3s ease;
-}
-
-.right {
+.date-range-inputs {
     display: flex;
-    gap: 10px;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
 }
 
-.toggle-btn {
-    padding: 8px 14px;
-    border-radius: 10px;
+.date-input {
+    padding: 10px 14px;
     border: 1px solid var(--border-color);
-    background: var(--btn-bg);
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: var(--bg-secondary);
     color: var(--text-primary);
+    flex: 1;
+    max-width: 180px;
     cursor: pointer;
-    transition: all 0.3s ease;
 }
 
-    .toggle-btn:hover {
-        opacity: 0.8;
+    .date-input:focus {
+        outline: none;
+        border-color: var(--border-active);
     }
 
-    .toggle-btn.active {
-        border: 2px solid var(--border-active);
-        background: var(--btn-active-bg);
-        color: var(--text-primary);
-    }
-
-.change-btn {
-    padding: 8px 18px;
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-    background: var(--btn-bg-secondary);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: all 0.3s ease;
+.date-separator {
+    color: var(--text-secondary);
+    font-size: 14px;
 }
 
-    .change-btn:hover {
-        opacity: 0.8;
+/* Action Button */
+.action-btn {
+    padding: 10px 28px;
+    background-color: #5b5fc7;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .action-btn:hover {
+        background-color: #4a4fb0;
+        transform: translateY(-1px);
     }
 
+    .action-btn:active {
+        transform: translateY(0);
+    }
 
-/*New Entry Css*/
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+    cursor: pointer;
+}
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+.toggle-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e0;
+    border-radius: 34px;
+    transition: 0.3s;
+}
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        border-radius: 50%;
+        transition: 0.3s;
+    }
+
+.toggle-switch input:checked + .toggle-slider {
+    background-color: #5b5fc7;
+}
+
+    .toggle-switch input:checked + .toggle-slider:before {
+        transform: translateX(24px);
+    }
+
+.toggle-switch input:focus + .toggle-slider {
+    box-shadow: 0 0 0 2px rgba(91, 95, 199, 0.2);
+}
+
+/* Dark Mode Adjustments */
+[data-theme="dark"] .date-input {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .toggle-slider {
+    background-color: #4a5568;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .settings-page {
+        padding: 20px 16px;
+    }
+
+    .settings-title {
+        font-size: 28px;
+        margin-bottom: 30px;
+    }
+
+    .section-title {
+        font-size: 18px;
+    }
+
+    .setting-item {
+        padding: 16px 0;
+    }
+
+    .date-range-inputs {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .date-input {
+        max-width: 100%;
+    }
+
+    .date-separator {
+        text-align: center;
+    }
+}
+
+/* Journal & Entries */
 /* Journal Container */
 .journal-container {
     max-width: 1200px;
@@ -406,7 +501,7 @@ h1:focus {
         background: #ffebee;
     }
 
-/* Existing styles from before */
+/* Entry Form Container */
 .entry-container {
     max-width: 900px;
     margin: 0 auto;

@@ -1,90 +1,89 @@
 ﻿@page "/settings"
 @inject ThemeService ThemeService
 
-<div class="settings-wrapper">
-    <div class="settings-container">
-        <h1 class="page-title">Settings</h1>
+<div class="settings-page">
+    <div class="settings-content">
+        <h1 class="settings-title">Settings</h1>
 
-        <!-- APPEARANCE -->
-        <div class="settings-row">
-            <div class="left">
-                <div class="row-title">
-                    <span>🎨</span>
-                    <strong>Appearance</strong>
-                </div>
-                <div class="row-content">
-                    <div class="row-heading">Theme</div>
-                    <div class="row-desc">Choose your preferred color theme</div>
-                </div>
-            </div>
-            <div class="right">
-                <button class="toggle-btn @(ThemeService.CurrentTheme == "dark" ? "active" : "")"
-                        @onclick="@(() => SetTheme("dark"))">
-                    🌙 Dark
-                </button>
-                <button class="toggle-btn @(ThemeService.CurrentTheme == "light" ? "active" : "")"
-                        @onclick="@(() => SetTheme("light"))">
-                    ☀️ Light
-                </button>
-            </div>
-        </div>
+        <!-- Security & Privacy -->
+        <section class="settings-section">
+            <h2 class="section-title">Security & Privacy</h2>
 
-        <!-- SECURITY -->
-        <div class="settings-row">
-            <div class="left">
-                <div class="row-title">
-                    <span>🔒</span>
-                    <strong>Security</strong>
-                </div>
-                <div class="row-content">
-                    <div class="row-heading">Change Password</div>
-                    <div class="row-desc">Update your app password</div>
-                </div>
+            <div class="setting-item">
+                <div class="setting-label">Enable Password/PIN Protection</div>
+                <label class="toggle-switch">
+                    <input type="checkbox" @bind="passwordProtectionEnabled" />
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
-            <div class="right">
-                <button class="change-btn">Change</button>
-            </div>
-        </div>
 
-        <!-- EXPORT JOURNAL -->
-        <div class="settings-row">
-            <div class="left">
-                <div class="row-title">
-                    <span>📄</span>
-                    <strong>Data & Export</strong>
-                </div>
-                <div class="row-content">
-                    <div class="row-heading">Export Journal as PDF</div>
-                    <div class="row-desc">
-                        Export journal entries as a PDF file by selecting a date range
-                    </div>
-                </div>
+            <div class="setting-item">
+                <div class="setting-label">Change Password/PIN</div>
+                <button class="action-btn" @onclick="ChangePassword">Change</button>
             </div>
-            <div class="right">
-                <button class="change-btn">Export</button>
-            </div>
-        </div>
+        </section>
 
-        <!-- ABOUT -->
-        <div class="settings-row">
-            <div class="left">
-                <div class="row-title">
-                    <span>ℹ️</span>
-                    <strong>About</strong>
-                </div>
-                <div class="row-content">
-                    <div class="row-heading">InsightJournal</div>
-                    <div class="row-desc">Version 1.0.0</div>
-                    <div class="row-desc">Your personal journaling companion</div>
+        <!-- Data Management -->
+        <section class="settings-section">
+            <h2 class="section-title">Data Management</h2>
+
+            <div class="setting-item">
+                <div class="setting-label">Export Journal Data (PDF)</div>
+                <button class="action-btn" @onclick="ExportToPdf">Export</button>
+            </div>
+
+            <div class="setting-item date-range-item">
+                <div class="setting-label">Date Range for Export</div>
+                <div class="date-range-inputs">
+                    <input type="date" class="date-input" @bind="exportStartDate" />
+                    <span class="date-separator">to</span>
+                    <input type="date" class="date-input" @bind="exportEndDate" />
                 </div>
             </div>
-        </div>
+        </section>
+
+        <!-- Theme Customization -->
+        <section class="settings-section">
+            <h2 class="section-title">Theme Customization</h2>
+
+            <div class="setting-item">
+                <div class="setting-label">Dark Mode</div>
+                <label class="toggle-switch">
+                    <input type="checkbox"
+                           @bind="isDarkMode"
+                           @bind:after="OnDarkModeChanged" />
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </section>
     </div>
 </div>
 
 @code {
-    private void SetTheme(string theme)
+    private bool passwordProtectionEnabled = false;
+    private bool isDarkMode = false;
+    private DateTime exportStartDate = DateTime.Today.AddMonths(-1);
+    private DateTime exportEndDate = DateTime.Today;
+
+    protected override void OnInitialized()
     {
-        ThemeService.SetTheme(theme);
+        isDarkMode = ThemeService.CurrentTheme == "dark";
+    }
+
+    private void OnDarkModeChanged()
+    {
+        ThemeService.SetTheme(isDarkMode ? "dark" : "light");
+    }
+
+    private void ChangePassword()
+    {
+        // TODO: Implement password change functionality
+        Console.WriteLine("Change password clicked");
+    }
+
+    private void ExportToPdf()
+    {
+        // TODO: Implement PDF export functionality
+        Console.WriteLine($"Export PDF from {exportStartDate:MM/dd/yyyy} to {exportEndDate:MM/dd/yyyy}");
     }
 }
