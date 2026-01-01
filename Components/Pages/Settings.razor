@@ -27,11 +27,6 @@
         <section class="settings-section">
             <h2 class="section-title">Data Management</h2>
 
-            <div class="setting-item">
-                <div class="setting-label">Export Journal Data (PDF)</div>
-                <button class="action-btn" @onclick="ExportToPdf">Export</button>
-            </div>
-
             <div class="setting-item date-range-item">
                 <div class="setting-label">Date Range for Export</div>
                 <div class="date-range-inputs">
@@ -40,6 +35,11 @@
                     <input type="date" class="date-input" @bind="exportEndDate" />
                 </div>
             </div>
+
+            <div class="setting-item">
+                <div class="setting-label">Export Journal Data (PDF)</div>
+                <button class="action-btn" @onclick="ExportToPdf">Export</button>
+            </div>
         </section>
 
         <!-- Theme Customization -->
@@ -47,7 +47,7 @@
             <h2 class="section-title">Theme Customization</h2>
 
             <div class="setting-item">
-                <div class="setting-label">Dark Mode</div>
+                <div class="setting-label">Light and Dark Mode</div>
                 <label class="toggle-switch">
                     <input type="checkbox"
                            @bind="isDarkMode"
