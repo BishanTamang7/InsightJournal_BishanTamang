@@ -31,6 +31,9 @@ namespace InsightJournal
             // Register JournalService
             builder.Services.AddScoped<JournalService>();
 
+            // Register PdfExportService
+            builder.Services.AddScoped<PdfExportService>();
+
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
             builder.Logging.AddDebug();

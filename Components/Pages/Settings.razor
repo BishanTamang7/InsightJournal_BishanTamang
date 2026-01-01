@@ -1,9 +1,13 @@
 ﻿@page "/settings"
 @inject ThemeService ThemeService
+@inject JournalService JournalService
+@inject PdfExportService PdfExportService
 
 <div class="settings-page">
     <div class="settings-content">
         <h1 class="settings-title">Settings</h1>
+
+
 
         <!-- Security & Privacy -->
         <section class="settings-section">
@@ -38,7 +42,18 @@
 
             <div class="setting-item">
                 <div class="setting-label">Export Journal Data (PDF)</div>
-                <button class="action-btn" @onclick="ExportToPdf">Export</button>
+                <button class="action-btn"
+                        @onclick="ShowExportConfirmation"
+                        disabled="@isExporting">
+                    @if (isExporting)
+                    {
+                        <span>Exporting...</span>
+                    }
+                    else
+                    {
+                        <span>Export PDF</span>
+                    }
+                </button>
             </div>
         </section>
 
@@ -59,11 +74,83 @@
     </div>
 </div>
 
+<!-- Toast Notification -->
+@if (!string.IsNullOrEmpty(exportMessage))
+{
+    <div style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; animation: slideDown 0.3s ease-out;">
+        <div style="background: @(exportSuccess ? "#10b981" : "#ef4444"); color: white; padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+            @if (exportSuccess)
+            {
+                <span style="font-size: 18px;">✓</span>
+            }
+            else
+            {
+                <span style="font-size: 18px;">✕</span>
+            }
+            <span>@exportMessage</span>
+        </div>
+    </div>
+
+    <style>
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+    </style>
+}
+
+<!-- Export Confirmation Modal -->
+@if (showExportModal)
+{
+    <div class="modal-overlay" @onclick="CancelExport">
+        <div class="modal-content" @onclick:stopPropagation>
+            <h3>Export Journal to PDF</h3>
+            <p>You are about to export your journal entries from:</p>
+            <div style="background-color: var(--bg-tertiary); padding: 15px; border-radius: 8px; margin: 15px 0;">
+                <p style="margin: 5px 0; font-weight: 600; color: var(--text-primary);">
+                    <strong>Start Date:</strong> @exportStartDate.ToString("MMMM dd, yyyy")
+                </p>
+                <p style="margin: 5px 0; font-weight: 600; color: var(--text-primary);">
+                    <strong>End Date:</strong> @exportEndDate.ToString("MMMM dd, yyyy")
+                </p>
+                <p style="margin: 5px 0; font-size: 0.9rem; color: var(--text-secondary);">
+                    Duration: @((exportEndDate - exportStartDate).Days + 1) days
+                </p>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                The PDF will be saved to your Downloads folder.
+            </p>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" @onclick="ConfirmExport">
+                    Confirm Export
+                </button>
+                <button class="btn btn-secondary" @onclick="CancelExport">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private bool passwordProtectionEnabled = false;
     private bool isDarkMode = false;
     private DateTime exportStartDate = DateTime.Today.AddMonths(-1);
     private DateTime exportEndDate = DateTime.Today;
+
+    // Export related
+    private bool isExporting = false;
+    private bool showExportModal = false;
+    private string? exportMessage;
+    private bool exportSuccess = false;
+    private string? lastExportPath;
 
     protected override void OnInitialized()
     {
@@ -81,9 +168,138 @@
         Console.WriteLine("Change password clicked");
     }
 
-    private void ExportToPdf()
+    private void ShowExportConfirmation()
     {
-        // TODO: Implement PDF export functionality
-        Console.WriteLine($"Export PDF from {exportStartDate:MM/dd/yyyy} to {exportEndDate:MM/dd/yyyy}");
+        // Clear previous messages
+        exportMessage = null;
+        exportSuccess = false;
+
+        // Validate date range before showing modal
+        if (exportEndDate < exportStartDate)
+        {
+            exportMessage = "❌ End date must be after start date. Please adjust your date range.";
+            exportSuccess = false;
+            return;
+        }
+
+        // Show confirmation modal
+        showExportModal = true;
+    }
+
+    private void CancelExport()
+    {
+        showExportModal = false;
+    }
+
+    private async Task ConfirmExport()
+    {
+        showExportModal = false;
+        await ExportToPdf();
+    }
+
+    private async Task ExportToPdf()
+    {
+        isExporting = true;
+        exportMessage = null;
+        exportSuccess = false;
+        lastExportPath = null;
+        StateHasChanged(); // Update UI to show "Exporting..." button state
+
+        try
+        {
+            // Validate date range
+            if (exportEndDate < exportStartDate)
+            {
+                isExporting = false;
+                exportMessage = "❌ End date must be after start date.";
+                exportSuccess = false;
+                StateHasChanged();
+
+                // Auto-hide error message after 1 second
+                await Task.Delay(1000);
+                exportMessage = null;
+                StateHasChanged();
+                return;
+            }
+
+            // Get entries within date range
+            var allEntries = await JournalService.GetAllEntriesAsync();
+            var filteredEntries = allEntries
+                .Where(e => e.Date.Date >= exportStartDate.Date && e.Date.Date <= exportEndDate.Date)
+                .ToList();
+
+            if (filteredEntries.Count == 0)
+            {
+                isExporting = false;
+                exportMessage = $"📭 No entries found between {exportStartDate:MMM dd, yyyy} and {exportEndDate:MMM dd, yyyy}.";
+                exportSuccess = false;
+                StateHasChanged();
+
+                // Auto-hide error message after 1 second
+                await Task.Delay(1000);
+                exportMessage = null;
+                StateHasChanged();
+                return;
+            }
+
+            // Export to PDF
+            lastExportPath = await PdfExportService.ExportEntriesToPdfAsync(
+                filteredEntries,
+                exportStartDate,
+                exportEndDate,
+                "InsightJournal User" // You can customize this
+            );
+
+            // Get statistics
+            var stats = PdfExportService.GetExportStatistics(filteredEntries);
+
+            // Export is complete, now show success message
+            isExporting = false;
+            exportMessage = $"PDF exported successfully to Downloads folder";
+            exportSuccess = true;
+            StateHasChanged();
+
+            // Auto-hide message after 1 second
+            await Task.Delay(1000);
+            exportMessage = null;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            isExporting = false;
+            exportMessage = $"❌ Error exporting PDF: {ex.Message}";
+            exportSuccess = false;
+            Console.WriteLine($"PDF Export Error: {ex}");
+            StateHasChanged();
+
+            // Auto-hide error message after 1 second
+            await Task.Delay(1000);
+            exportMessage = null;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenExportedFile()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(lastExportPath) && File.Exists(lastExportPath))
+            {
+                await Launcher.OpenAsync(new OpenFileRequest
+                {
+                    File = new ReadOnlyFile(lastExportPath)
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error opening file: {ex.Message}");
+            exportMessage = "❌ Could not open the PDF file.";
+            exportSuccess = false;
+
+            // Auto-hide error message after 1 second
+            await Task.Delay(1000);
+            exportMessage = null;
+        }
     }
 }
