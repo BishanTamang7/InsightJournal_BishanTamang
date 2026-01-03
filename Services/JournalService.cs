@@ -28,7 +28,7 @@ namespace InsightJournal.Services
         }
 
         // Create new entry
-        public async Task<JournalEntry> CreateEntryAsync(string title, string content)
+        public async Task<JournalEntry> CreateEntryAsync(string title, string content, List<string> tags)
         {
             var today = DateTime.Today;
 
@@ -44,6 +44,7 @@ namespace InsightJournal.Services
                 Date = today,
                 Title = title,
                 Content = content,
+                Tags = TagService.TagsToString(tags),
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -55,7 +56,7 @@ namespace InsightJournal.Services
         }
 
         // Update entry
-        public async Task<JournalEntry> UpdateEntryAsync(int id, string title, string content)
+        public async Task<JournalEntry> UpdateEntryAsync(int id, string title, string content, List<string> tags)
         {
             var entry = await _context.JournalEntries.FindAsync(id);
             if (entry == null)
@@ -65,6 +66,7 @@ namespace InsightJournal.Services
 
             entry.Title = title;
             entry.Content = content;
+            entry.Tags = TagService.TagsToString(tags);
             entry.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
@@ -90,6 +92,15 @@ namespace InsightJournal.Services
             return await _context.JournalEntries
                 .OrderByDescending(e => e.Date)
                 .ToListAsync();
+        }
+
+        // Get entries by tag
+        public async Task<List<JournalEntry>> GetEntriesByTagAsync(string tag)
+        {
+            var allEntries = await GetAllEntriesAsync();
+            return allEntries
+                .Where(e => TagService.ParseTags(e.Tags).Contains(tag))
+                .ToList();
         }
     }
 }

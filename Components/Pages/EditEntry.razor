@@ -48,6 +48,21 @@
             </div>
 
             <div class="form-group">
+                <label>Tags</label>
+                <div class="tags-container">
+                    @foreach (var tag in TagService.PredefinedTags)
+                    {
+                        <label class="tag-checkbox" style="--tag-color: @TagService.GetTagColor(tag)">
+                            <input type="checkbox"
+                                   checked="@selectedTags.Contains(tag)"
+                                   @onchange="@((e) => ToggleTag(tag, (bool)e.Value!))" />
+                            <span class="tag-label">@tag</span>
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label>Content</label>
                 <textarea class="form-textarea"
                           rows="15"
@@ -67,6 +82,47 @@
     }
 </div>
 
+<style>
+    .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 8px;
+    }
+
+    .tag-checkbox {
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+        user-select: none;
+    }
+
+        .tag-checkbox input[type="checkbox"] {
+            display: none;
+        }
+
+    .tag-label {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        border: 2px solid var(--tag-color);
+        color: var(--tag-color);
+        background-color: transparent;
+        transition: all 0.2s;
+    }
+
+    .tag-checkbox input[type="checkbox"]:checked + .tag-label {
+        background-color: var(--tag-color);
+        color: white;
+    }
+
+    .tag-checkbox:hover .tag-label {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+</style>
+
 @code {
     [Parameter]
     public int EntryId { get; set; }
@@ -74,6 +130,7 @@
     private JournalEntry? entry;
     private string title = "";
     private string content = "";
+    private List<string> selectedTags = new();
     private string? errorMessage;
     private string? successMessage;
     private bool isLoading = true;
@@ -94,9 +151,25 @@
         {
             title = entry.Title;
             content = entry.Content;
+            selectedTags = TagService.ParseTags(entry.Tags);
         }
 
         isLoading = false;
+    }
+
+    private void ToggleTag(string tag, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!selectedTags.Contains(tag))
+            {
+                selectedTags.Add(tag);
+            }
+        }
+        else
+        {
+            selectedTags.Remove(tag);
+        }
     }
 
     private async Task UpdateEntry()
@@ -120,7 +193,7 @@
 
         try
         {
-            await JournalService.UpdateEntryAsync(entry.Id, title, content);
+            await JournalService.UpdateEntryAsync(entry.Id, title, content, selectedTags);
             successMessage = "Entry updated successfully!";
 
             await Task.Delay(1000);

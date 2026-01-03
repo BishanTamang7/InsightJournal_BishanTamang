@@ -27,19 +27,12 @@
                 <option value="year">Last Year</option>
             </select>
 
-            <select class="filter-dropdown">
-                <option>Filter by Mood</option>
-                <option>Positive</option>
-                <option>Neutral</option>
-                <option>Negative</option>
-            </select>
-
-            <select class="filter-dropdown">
-                <option>Filter by Tags</option>
-                <option>Work</option>
-                <option>Health</option>
-                <option>Travel</option>
-                <option>Fitness</option>
+            <select class="filter-dropdown" @bind="tagFilter" @bind:after="FilterEntries">
+                <option value="">All Tags</option>
+                @foreach (var tag in TagService.PredefinedTags)
+                {
+                    <option value="@tag">@tag</option>
+                }
             </select>
         </div>
     </div>
@@ -69,10 +62,19 @@
                     <div class="entry-info">
                         <h3 class="entry-title">@entry.Title</h3>
                         <p class="entry-meta">
-                            Date: @entry.Date.ToString("yyyy-MM-dd") |
-                            Mood: @GetMoodPlaceholder() |
-                            Tags: @GetTagsPlaceholder()
+                            Date: @entry.Date.ToString("yyyy-MM-dd")
                         </p>
+                        @if (!string.IsNullOrWhiteSpace(entry.Tags))
+                        {
+                            <div class="entry-tags">
+                                @foreach (var tag in TagService.ParseTags(entry.Tags))
+                                {
+                                    <span class="entry-tag" style="background-color: @TagService.GetTagColor(tag)">
+                                        @tag
+                                    </span>
+                                }
+                            </div>
+                        }
                     </div>
                     <div class="entry-actions">
                         <button class="btn-action btn-view" @onclick="() => ViewEntry(entry)">
@@ -130,6 +132,23 @@
     }
 </div>
 
+<style>
+    .entry-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .entry-tag {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        color: white;
+    }
+</style>
+
 @code {
     private List<JournalEntry> entries = new();
     private List<JournalEntry> filteredEntries = new();
@@ -138,6 +157,7 @@
     private JournalEntry? entryToDelete;
     private string searchText = "";
     private string dateFilter = "all";
+    private string tagFilter = "";
 
     // Pagination
     private int currentPage = 1;
@@ -178,6 +198,12 @@
             "year" => query.Where(e => e.Date.Date >= now.AddYears(-1)),
             _ => query
         };
+
+        // Filter by tag
+        if (!string.IsNullOrWhiteSpace(tagFilter))
+        {
+            query = query.Where(e => TagService.ParseTags(e.Tags).Contains(tagFilter));
+        }
 
         filteredEntries = query.OrderByDescending(e => e.Date).ToList();
 
@@ -261,8 +287,4 @@
             currentPage = page;
         }
     }
-
-    // Placeholder methods (since Mood and Tags aren't in the model yet)
-    private string GetMoodPlaceholder() => "Neutral";
-    private string GetTagsPlaceholder() => "General";
 }
