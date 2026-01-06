@@ -299,7 +299,6 @@ This project adheres to London Metropolitan University's academic integrity poli
 *Student Developer*
 
 [![GitHub](https://img.shields.io/badge/GitHub-BishanTamang7-181717?style=for-the-badge&logo=github)](https://github.com/BishanTamang7)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/yourprofile)
 
 **London Met ID**: [Your ID]  
 **Institution**: Itahari International College
