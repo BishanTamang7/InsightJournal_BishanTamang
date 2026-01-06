@@ -1,28 +1,50 @@
-# Insight Journal
+<div align="center">
 
-A secure, feature-rich desktop journaling application built with C#.NET that helps you track your thoughts, moods, and personal growth through intelligent analytics and an intuitive interface.
+# 📔 Insight Journal
 
-## 📋 Project Overview
+### *Your thoughts, your journey, your insights.*
+
+[![C#](https://img.shields.io/badge/C%23-.NET-512BD4?style=for-the-badge&logo=csharp&logoColor=white)](https://dotnet.microsoft.com/)
+[![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![License](https://img.shields.io/badge/License-Academic-blue?style=for-the-badge)](LICENSE)
+
+**A secure, feature-rich desktop journaling application that helps you track your thoughts, moods, and personal growth through intelligent analytics.**
+
+[Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Tech Stack](#️-tech-stack) • [Screenshots](#-screenshots)
+
+</div>
+
+---
+
+## 🌟 Overview
 
 **Insight Journal** is a modern desktop application designed to transform the traditional journaling experience. It provides a comprehensive platform for daily reflection, mood tracking, and personal analytics, all while maintaining security and privacy through local data storage.
 
-### Purpose
-- Enable consistent daily journaling with rich-text formatting
-- Track emotional patterns through mood analytics
-- Provide insights into personal growth and habits
-- Maintain privacy with local, encrypted storage
+### 🎯 Purpose
 
-### Scope
-- Single daily journal entry management (CRUD operations)
-- Rich-text/Markdown content support
-- Comprehensive mood and tag tracking system
-- Advanced search, filter, and navigation capabilities
-- Analytics dashboard with visualizations
-- Streak tracking for consistency motivation
-- Secure password/PIN protection
-- PDF export functionality
+```
+✓ Enable consistent daily journaling with rich-text formatting
+✓ Track emotional patterns through mood analytics  
+✓ Provide insights into personal growth and habits
+✓ Maintain privacy with local, encrypted storage
+```
 
-## ✨ Key Features
+### 📊 Project Scope
+
+| Feature Category | Description |
+|-----------------|-------------|
+| **Entry Management** | Single daily journal entry with full CRUD operations |
+| **Content Support** | Rich-text/Markdown formatting with live preview |
+| **Mood Tracking** | Primary + secondary mood selection (15 moods total) |
+| **Organization** | Custom tags, categories, and pre-built tag system |
+| **Navigation** | Calendar view + paginated timeline |
+| **Analytics** | Dashboard with mood distribution, trends, and insights |
+| **Security** | Password/PIN protection with local encryption |
+| **Export** | PDF generation with date range filtering |
+
+---
+
+## ✨ Features
 
 ### 📝 Journal Entry Management
 - **One Entry Per Day**: Create, update, or delete a single entry per day
@@ -88,137 +110,225 @@ A secure, feature-rich desktop journaling application built with C#.NET that hel
 - Custom theme options
 - Consistent, user-friendly interface
 
-## 🛠️ Technology Stack
+---
 
-### Framework
-- **C#.NET** (Core Framework)
-- **.NET MAUI / WinForms / WPF** (UI Framework)
+## 🛠️ Tech Stack
 
-### Database
-- **SQLite** - Local database for secure data storage
+<div align="center">
 
-### Libraries & Packages
-- **Newtonsoft.Json** - JSON serialization
-- **MudBlazor / MaterialDesignInXaml** - UI components
-- **LiveCharts / OxyPlot** - Data visualization
-- **MarkDig** - Markdown parsing
-- **iTextSharp / PdfSharp** - PDF generation
-- **BCrypt.Net** - Password hashing
+### Core Technologies
+
+[![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)](https://docs.microsoft.com/en-us/dotnet/csharp/)
+[![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+
+</div>
+
+| Category | Technologies |
+|----------|-------------|
+| **Framework** | C#.NET (Core) • .NET MAUI / WinForms / WPF |
+| **Database** | SQLite (Local Storage) |
+| **UI Components** | MudBlazor / MaterialDesignInXaml |
+| **Visualization** | LiveCharts / OxyPlot |
+| **Markdown** | MarkDig (Parser & Renderer) |
+| **PDF Export** | iTextSharp / PdfSharp |
+| **Security** | BCrypt.Net (Password Hashing) |
+| **JSON** | Newtonsoft.Json |
+
+---
 
 ## 📦 Installation
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd insight-journal
-```
+### Prerequisites
+- Visual Studio 2022 or later
+- .NET 6.0 SDK or higher
+- Windows 10/11 (for desktop deployment)
 
-2. Open the solution in Visual Studio 2022 or later
+### Steps
 
-3. Restore NuGet packages:
 ```bash
+# 1. Clone the repository
+git clone https://github.com/BishanTamang7/InsightJournal_BishanTamang.git
+cd InsightJournal_BishanTamang
+
+# 2. Restore NuGet packages
 dotnet restore
-```
 
-4. Build the project:
-```bash
+# 3. Build the project
 dotnet build
-```
 
-5. Run the application:
-```bash
+# 4. Run the application
 dotnet run
 ```
 
+### Visual Studio
+1. Open `InsightJournal.sln` in Visual Studio
+2. Right-click on the solution → **Restore NuGet Packages**
+3. Press `F5` or click **Start** to run
+
+---
+
 ## 💻 Usage
 
-### First Launch
-1. Set up your password/PIN for security
-2. Create your first journal entry
-3. Select your mood and add tags
-4. Start building your journaling streak!
+### 🚀 First Launch
 
-### Daily Journaling
-1. Click "New Entry" or navigate to today's date
-2. Write your thoughts using the rich-text editor
-3. Select your primary mood and optional secondary moods
-4. Add relevant tags to categorize your entry
-5. Save your entry - timestamps are automatically recorded
+```
+1️⃣ Set up your password/PIN for security
+2️⃣ Create your first journal entry
+3️⃣ Select your mood and add tags
+4️⃣ Start building your journaling streak!
+```
 
-### Viewing Analytics
-1. Navigate to the Dashboard
-2. Select a date range for analysis
-3. View mood distribution, streak statistics, and tag insights
-4. Export data as PDF if needed
+### ✍️ Daily Journaling
+
+<table>
+<tr>
+<td width="50%">
+
+**Creating an Entry**
+1. Click **"New Entry"** or navigate to today
+2. Write using the rich-text editor
+3. Select primary + secondary moods
+4. Add relevant tags
+5. Save (auto-timestamps recorded)
+
+</td>
+<td width="50%">
+
+**Viewing Analytics**
+1. Navigate to **Dashboard**
+2. Select a date range
+3. View mood distribution & trends
+4. Analyze streak statistics
+5. Export as PDF if needed
+
+</td>
+</tr>
+</table>
+
+---
 
 ## 📁 Project Structure
 
 ```
 InsightJournal/
-├── Models/              # Data models (Entry, Mood, Tag, User)
-├── ViewModels/          # MVVM ViewModels
-├── Views/               # UI pages and components
-├── Services/            # Business logic and data services
-├── Data/                # Database context and migrations
-├── Helpers/             # Utility classes
-├── Assets/              # Images, icons, and resources
-└── Exports/             # PDF export output directory
+│
+├── 📂 Models/              # Data models (Entry, Mood, Tag, User)
+├── 📂 ViewModels/          # MVVM ViewModels
+├── 📂 Views/               # UI pages and components
+├── 📂 Services/            # Business logic and data services
+├── 📂 Data/                # Database context and migrations
+├── 📂 Helpers/             # Utility classes
+├── 📂 Assets/              # Images, icons, and resources
+├── 📂 Exports/             # PDF export output directory
+├── 📄 README.md
+└── 📄 InsightJournal.sln
 ```
-
-## 🔒 Security Features
-
-- Local-only data storage (no cloud sync)
-- Password protection with BCrypt hashing
-- SQLite database encryption
-- No telemetry or data collection
-
-## 🚀 Future Enhancements
-
-- Cloud backup option (optional)
-- Mobile companion app
-- Voice-to-text entry
-- Image attachments
-- Custom mood creation
-- Journaling prompts and suggestions
-- Multi-language support
-- Advanced analytics with AI insights
-
-## 📝 Documentation
-
-Complete documentation including:
-- Architecture diagrams
-- Database schema (ERD)
-- API documentation
-- User manual
-- Development guide
-
-## 🤝 Contributing
-
-This is an academic project developed as coursework for **CS6004NT - Application Development** at London Metropolitan University.
-
-**Module Leader**: Mr. Bikram Poudel (Islington College)
-
-## 📄 License
-
-This project is developed for educational purposes as part of university coursework.
-
-## ⚠️ Academic Integrity
-
-This project adheres to London Metropolitan University's academic integrity policies. All code is original work with proper attribution for any external libraries or resources used.
-
-## 👤 Author
-
-**[Your Name]**  
-**London Met ID**: [Your ID]  
-**Institution**: Itahari International College  
-**Year**: 2025-2026
-
-## 📞 Support
-
-For issues or questions related to this project, please refer to the module documentation or contact the module leader.
 
 ---
 
-**Built with 💙 using C#.NET**
+## 📸 Screenshots
 
-*Insight Journal - Your thoughts, your journey, your insights.*
+> *Coming soon - Application screenshots will be added here*
+
+---
+
+## 🔒 Security Features
+
+| Feature | Description |
+|---------|-------------|
+| 🔐 **Password Protection** | BCrypt hashing for secure authentication |
+| 💾 **Local Storage** | All data stored locally (no cloud sync) |
+| 🔒 **Database Encryption** | SQLite database with encryption |
+| 🚫 **No Telemetry** | Zero data collection or tracking |
+
+---
+
+## 🚀 Future Enhancements
+
+<details>
+<summary>Click to expand roadmap</summary>
+
+- [ ] ☁️ Optional cloud backup
+- [ ] 📱 Mobile companion app (iOS/Android)
+- [ ] 🎤 Voice-to-text entry
+- [ ] 🖼️ Image attachments support
+- [ ] 😊 Custom mood creation
+- [ ] 💡 AI-powered journaling prompts
+- [ ] 🌍 Multi-language support
+- [ ] 🤖 Advanced AI insights & sentiment analysis
+- [ ] 📊 Export to more formats (Word, JSON)
+- [ ] 🔗 Social sharing (anonymized)
+
+</details>
+
+---
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| 📐 **Architecture Diagrams** | System design and component interactions |
+| 🗄️ **Database Schema (ERD)** | Entity relationships and data models |
+| 📖 **API Documentation** | Service layer and method references |
+| 👤 **User Manual** | Step-by-step usage guide |
+| 💻 **Development Guide** | Setup and contribution guidelines |
+
+---
+
+## 🎓 Academic Project
+
+This project is developed as coursework for:
+
+**Module**: CS6004NT - Application Development  
+**Institution**: London Metropolitan University / Itahari International College  
+**Module Leader**: Mr. Bikram Poudel (Islington College)  
+**Academic Year**: 2025-2026
+
+### ⚠️ Academic Integrity
+
+This project adheres to London Metropolitan University's academic integrity policies. All code is original work with proper attribution for any external libraries or resources used.
+
+---
+
+## 👤 Author
+
+<div align="center">
+
+**Bishan Tamang**  
+*Student Developer*
+
+[![GitHub](https://img.shields.io/badge/GitHub-BishanTamang7-181717?style=for-the-badge&logo=github)](https://github.com/BishanTamang7)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/yourprofile)
+
+**London Met ID**: [Your ID]  
+**Institution**: Itahari International College
+
+</div>
+
+---
+
+## 📄 License
+
+This project is developed for **educational purposes** as part of university coursework.
+
+---
+
+## 📞 Support
+
+For issues or questions:
+- 📧 Contact the module leader
+- 📚 Refer to module documentation
+- 🐛 [Open an issue](https://github.com/BishanTamang7/InsightJournal_BishanTamang/issues)
+
+---
+
+<div align="center">
+
+### Built with 💙 using C#.NET
+
+**Insight Journal** - *Your thoughts, your journey, your insights.*
+
+⭐ Star this repository if you find it helpful!
+
+</div>
