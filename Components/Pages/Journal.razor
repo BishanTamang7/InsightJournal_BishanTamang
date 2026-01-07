@@ -3,6 +3,7 @@
 @using InsightJournal.Services
 @inject JournalService JournalService
 @inject NavigationManager Navigation
+@inject ILogger<Journal> Logger
 
 <PageTitle>Journal</PageTitle>
 
@@ -43,13 +44,22 @@
             <p>Loading entries...</p>
         </div>
     }
+    else if (hasError)
+    {
+        <div class="alert alert-error">
+            <p>⚠️ @errorMessage</p>
+            <button class="btn btn-secondary" @onclick="RetryLoadEntries">Retry</button>
+        </div>
+    }
     else if (filteredEntries.Count == 0)
     {
         <div class="empty-state-new">
             <h3>No entries found</h3>
-            <p>Start your journaling journey by creating your first entry!</p>
+            <p>@(string.IsNullOrWhiteSpace(searchText) || !string.IsNullOrWhiteSpace(tagFilter) || dateFilter != "all" 
+                ? "Try adjusting your filters or search terms." 
+                : "Start your journaling journey by creating your first entry!")</p>
             <button class="btn-new-entry" @onclick="GoToNewEntry">
-                Create First Entry
+                Create @(filteredEntries.Count == 0 && entries.Count == 0 ? "First" : "New") Entry
             </button>
         </div>
     }
@@ -92,28 +102,31 @@
         </div>
 
         <!-- Pagination -->
-        <div class="pagination">
-            <button class="pagination-btn"
-                    @onclick="PreviousPage"
-                    disabled="@(currentPage == 1)">
-                Previous
-            </button>
-
-            @for (int i = 1; i <= totalPages; i++)
-            {
-                int pageNum = i;
-                <button class="pagination-btn @(currentPage == pageNum ? "active" : "")"
-                        @onclick="() => GoToPage(pageNum)">
-                    @pageNum
+        @if (totalPages > 1)
+        {
+            <div class="pagination">
+                <button class="pagination-btn"
+                        @onclick="PreviousPage"
+                        disabled="@(currentPage == 1)">
+                    Previous
                 </button>
-            }
 
-            <button class="pagination-btn"
-                    @onclick="NextPage"
-                    disabled="@(currentPage == totalPages)">
-                Next
-            </button>
-        </div>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    int pageNum = i;
+                    <button class="pagination-btn @(currentPage == pageNum ? "active" : "")"
+                            @onclick="() => GoToPage(pageNum)">
+                        @pageNum
+                    </button>
+                }
+
+                <button class="pagination-btn"
+                        @onclick="NextPage"
+                        disabled="@(currentPage == totalPages)">
+                    Next
+                </button>
+            </div>
+        }
     }
 
     @if (showDeleteModal)
@@ -124,8 +137,12 @@
                 <p>Are you sure you want to delete "<strong>@entryToDelete?.Title</strong>"?</p>
                 <p class="warning-text">This action cannot be undone.</p>
                 <div class="modal-buttons">
-                    <button class="btn btn-danger" @onclick="ConfirmDelete">Yes, Delete</button>
-                    <button class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
+                    <button class="btn btn-danger" @onclick="ConfirmDelete" disabled="@isDeleting">
+                        @(isDeleting ? "Deleting..." : "Yes, Delete")
+                    </button>
+                    <button class="btn btn-secondary" @onclick="CancelDelete" disabled="@isDeleting">
+                        Cancel
+                    </button>
                 </div>
             </div>
         </div>
@@ -147,13 +164,29 @@
         font-weight: 500;
         color: white;
     }
+
+    .alert {
+        padding: 16px;
+        background-color: #fee;
+        border-left: 4px solid #e53e3e;
+        color: #c53030;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+
+    .alert button {
+        margin-top: 10px;
+    }
 </style>
 
 @code {
     private List<JournalEntry> entries = new();
     private List<JournalEntry> filteredEntries = new();
     private bool isLoading = true;
+    private bool hasError = false;
+    private string errorMessage = string.Empty;
     private bool showDeleteModal = false;
+    private bool isDeleting = false;
     private JournalEntry? entryToDelete;
     private string searchText = "";
     private string dateFilter = "all";
@@ -172,43 +205,65 @@
     private async Task LoadEntries()
     {
         isLoading = true;
-        entries = await JournalService.GetAllEntriesAsync();
-        FilterEntries();
-        isLoading = false;
+        hasError = false;
+        errorMessage = string.Empty;
+
+        try
+        {
+            // Calculate date range based on filter
+            DateTime? startDate = GetStartDateFromFilter();
+            
+            // Use optimized database-level filtering
+            entries = await JournalService.GetAllEntriesAsync(
+                searchText: string.IsNullOrWhiteSpace(searchText) ? null : searchText,
+                startDate: startDate,
+                tag: string.IsNullOrWhiteSpace(tagFilter) ? null : tagFilter
+            );
+
+            filteredEntries = entries;
+            Logger.LogInformation("Successfully loaded {Count} entries", entries.Count);
+        }
+        catch (ApplicationException ex)
+        {
+            hasError = true;
+            errorMessage = ex.Message;
+            Logger.LogError(ex, "Failed to load journal entries");
+        }
+        catch (Exception ex)
+        {
+            hasError = true;
+            errorMessage = "An unexpected error occurred. Please try again.";
+            Logger.LogError(ex, "Unexpected error loading journal entries");
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
 
-    private void FilterEntries()
+    private DateTime? GetStartDateFromFilter()
     {
-        var query = entries.AsEnumerable();
-
-        // Filter by search text (title only)
-        if (!string.IsNullOrWhiteSpace(searchText))
-        {
-            query = query.Where(e => e.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase));
-        }
-
-        // Filter by date
         var now = DateTime.Today;
-        query = dateFilter switch
+        return dateFilter switch
         {
-            "today" => query.Where(e => e.Date.Date == now),
-            "week" => query.Where(e => e.Date.Date >= now.AddDays(-7)),
-            "month" => query.Where(e => e.Date.Date >= now.AddDays(-30)),
-            "3months" => query.Where(e => e.Date.Date >= now.AddMonths(-3)),
-            "year" => query.Where(e => e.Date.Date >= now.AddYears(-1)),
-            _ => query
+            "today" => now,
+            "week" => now.AddDays(-7),
+            "month" => now.AddDays(-30),
+            "3months" => now.AddMonths(-3),
+            "year" => now.AddYears(-1),
+            _ => null
         };
+    }
 
-        // Filter by tag
-        if (!string.IsNullOrWhiteSpace(tagFilter))
-        {
-            query = query.Where(e => TagService.ParseTags(e.Tags).Contains(tagFilter));
-        }
+    private async Task FilterEntries()
+    {
+        currentPage = 1; // Reset to first page when filtering
+        await LoadEntries();
+    }
 
-        filteredEntries = query.OrderByDescending(e => e.Date).ToList();
-
-        // Reset to page 1 when filtering
-        currentPage = 1;
+    private async Task RetryLoadEntries()
+    {
+        await LoadEntries();
     }
 
     private List<JournalEntry> GetPagedEntries()
@@ -242,24 +297,49 @@
 
     private void CancelDelete()
     {
-        showDeleteModal = false;
-        entryToDelete = null;
+        if (!isDeleting)
+        {
+            showDeleteModal = false;
+            entryToDelete = null;
+        }
     }
 
     private async Task ConfirmDelete()
     {
         if (entryToDelete == null) return;
 
+        isDeleting = true;
+
         try
         {
             await JournalService.DeleteEntryAsync(entryToDelete.Id);
+            Logger.LogInformation("Successfully deleted entry {EntryId}", entryToDelete.Id);
+            
             showDeleteModal = false;
             entryToDelete = null;
             await LoadEntries();
         }
+        catch (KeyNotFoundException ex)
+        {
+            errorMessage = "Entry not found. It may have already been deleted.";
+            hasError = true;
+            Logger.LogWarning(ex, "Attempted to delete non-existent entry");
+        }
+        catch (ApplicationException ex)
+        {
+            errorMessage = ex.Message;
+            hasError = true;
+            Logger.LogError(ex, "Error deleting entry");
+        }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error deleting entry: {ex.Message}");
+            errorMessage = "Failed to delete entry. Please try again.";
+            hasError = true;
+            Logger.LogError(ex, "Unexpected error deleting entry");
+        }
+        finally
+        {
+            isDeleting = false;
             showDeleteModal = false;
         }
     }

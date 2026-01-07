@@ -3,6 +3,7 @@
 @using InsightJournal.Services
 @inject JournalService JournalService
 @inject NavigationManager Navigation
+@inject ILogger<Calendar> Logger
 
 <PageTitle>Calendar</PageTitle>
 
@@ -11,68 +12,85 @@
         <h1 class="calendar-title">Calendar View</h1>
     </div>
 
+    @if (hasError)
+    {
+        <div class="alert alert-error">
+            <p>⚠️ @errorMessage</p>
+            <button class="btn btn-secondary" @onclick="RetryLoad">Retry</button>
+        </div>
+    }
+
     <div class="calendar-container">
         <!-- Month Navigation -->
         <div class="calendar-nav">
-            <button class="nav-btn" @onclick="PreviousMonth">
+            <button class="nav-btn" @onclick="PreviousMonth" disabled="@isLoading">
                 <span>← Previous</span>
             </button>
             <h2 class="current-month">@currentDate.ToString("MMMM yyyy")</h2>
-            <button class="nav-btn" @onclick="NextMonth">
+            <button class="nav-btn" @onclick="NextMonth" disabled="@isLoading">
                 <span>Next →</span>
             </button>
         </div>
 
-        <!-- Calendar Grid -->
-        <div class="calendar-grid">
-            <!-- Weekday Headers -->
-            <div class="weekday-header">Sun</div>
-            <div class="weekday-header">Mon</div>
-            <div class="weekday-header">Tue</div>
-            <div class="weekday-header">Wed</div>
-            <div class="weekday-header">Thu</div>
-            <div class="weekday-header">Fri</div>
-            <div class="weekday-header">Sat</div>
-
-            <!-- Calendar Days -->
-            @foreach (var day in calendarDays)
-            {
-                <div class="calendar-day @GetDayClasses(day)" @onclick="() => SelectDate(day)">
-                    <span class="day-number">@day.Day</span>
-                    @if (HasEntry(day))
-                    {
-                        <div class="entry-indicator"></div>
-                    }
-                </div>
-            }
-        </div>
-
-        <!-- Selected Date Entry -->
-        @if (selectedEntry != null)
+        @if (isLoading)
         {
-            <div class="entry-preview">
-                <div class="entry-preview-header">
-                    <h3>@selectedEntry.Title</h3>
-                    <span class="entry-date">@selectedEntry.Date.ToString("MMMM dd, yyyy")</span>
-                </div>
-                <div class="entry-preview-content">
-                    @(selectedEntry.Content.Length > 200 ? selectedEntry.Content.Substring(0, 200) + "..." : selectedEntry.Content)
-                </div>
-                <div class="entry-preview-actions">
-                    <button class="btn-view-full" @onclick="() => ViewEntry(selectedEntry)">
-                        View Full Entry
-                    </button>
-                </div>
+            <div class="loading-state">
+                <p>Loading calendar...</p>
             </div>
         }
-        else if (selectedDate.HasValue && !HasEntry(selectedDate.Value))
+        else
         {
-            <div class="entry-preview no-entry">
-                <p>No entry for @selectedDate.Value.ToString("MMMM dd, yyyy")</p>
-                <button class="btn-create-entry" @onclick="CreateEntryForDate">
-                    Create Entry
-                </button>
+            <!-- Calendar Grid -->
+            <div class="calendar-grid">
+                <!-- Weekday Headers -->
+                <div class="weekday-header">Sun</div>
+                <div class="weekday-header">Mon</div>
+                <div class="weekday-header">Tue</div>
+                <div class="weekday-header">Wed</div>
+                <div class="weekday-header">Thu</div>
+                <div class="weekday-header">Fri</div>
+                <div class="weekday-header">Sat</div>
+
+                <!-- Calendar Days -->
+                @foreach (var day in calendarDays)
+                {
+                    <div class="calendar-day @GetDayClasses(day)" @onclick="() => SelectDate(day)">
+                        <span class="day-number">@day.Day</span>
+                        @if (HasEntry(day))
+                        {
+                            <div class="entry-indicator"></div>
+                        }
+                    </div>
+                }
             </div>
+
+            <!-- Selected Date Entry -->
+            @if (selectedEntry != null)
+            {
+                <div class="entry-preview">
+                    <div class="entry-preview-header">
+                        <h3>@selectedEntry.Title</h3>
+                        <span class="entry-date">@selectedEntry.Date.ToString("MMMM dd, yyyy")</span>
+                    </div>
+                    <div class="entry-preview-content">
+                        @(selectedEntry.Content.Length > 200 ? selectedEntry.Content.Substring(0, 200) + "..." : selectedEntry.Content)
+                    </div>
+                    <div class="entry-preview-actions">
+                        <button class="btn-view-full" @onclick="() => ViewEntry(selectedEntry)">
+                            View Full Entry
+                        </button>
+                    </div>
+                </div>
+            }
+            else if (selectedDate.HasValue && !HasEntry(selectedDate.Value))
+            {
+                <div class="entry-preview no-entry">
+                    <p>No entry for @selectedDate.Value.ToString("MMMM dd, yyyy")</p>
+                    <button class="btn-create-entry" @onclick="CreateEntryForDate">
+                        Create Entry
+                    </button>
+                </div>
+            }
         }
     </div>
 </div>
@@ -122,9 +140,14 @@
         transition: all 0.2s;
     }
 
-        .nav-btn:hover {
+        .nav-btn:hover:not(:disabled) {
             background-color: #4a4fb0;
             transform: translateY(-1px);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
     .current-month {
@@ -208,6 +231,12 @@
         margin-top: 4px;
     }
 
+    .loading-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+    }
+
     .entry-preview {
         background-color: var(--bg-primary);
         border-radius: 12px;
@@ -284,6 +313,19 @@
             background-color: #4a4fb0;
         }
 
+    .alert {
+        padding: 16px;
+        background-color: #fee;
+        border-left: 4px solid #e53e3e;
+        color: #c53030;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+
+        .alert button {
+            margin-top: 10px;
+        }
+
     @@media (max-width: 768px) {
         .calendar-container {
             padding: 16px;
@@ -318,6 +360,9 @@
     private List<DateTime> calendarDays = new();
     private List<JournalEntry> entries = new();
     private JournalEntry? selectedEntry;
+    private bool isLoading = true;
+    private bool hasError = false;
+    private string errorMessage = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -327,26 +372,67 @@
 
     private async Task LoadEntries()
     {
-        entries = await JournalService.GetAllEntriesAsync();
+        isLoading = true;
+        hasError = false;
+        errorMessage = string.Empty;
+
+        try
+        {
+            entries = await JournalService.GetAllEntriesAsync();
+            Logger.LogInformation("Successfully loaded {Count} entries for calendar", entries.Count);
+        }
+        catch (ApplicationException ex)
+        {
+            hasError = true;
+            errorMessage = ex.Message;
+            Logger.LogError(ex, "Failed to load entries for calendar");
+        }
+        catch (Exception ex)
+        {
+            hasError = true;
+            errorMessage = "An unexpected error occurred while loading the calendar.";
+            Logger.LogError(ex, "Unexpected error loading calendar entries");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task RetryLoad()
+    {
+        await LoadEntries();
+        GenerateCalendarDays();
     }
 
     private void GenerateCalendarDays()
     {
-        calendarDays.Clear();
-
-        var firstDayOfMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
-        var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
-
-        // Get the starting Sunday
-        var startDate = firstDayOfMonth.AddDays(-(int)firstDayOfMonth.DayOfWeek);
-
-        // Get the ending Saturday
-        var endDate = lastDayOfMonth.AddDays(6 - (int)lastDayOfMonth.DayOfWeek);
-
-        // Generate all days
-        for (var date = startDate; date <= endDate; date = date.AddDays(1))
+        try
         {
-            calendarDays.Add(date);
+            calendarDays.Clear();
+
+            var firstDayOfMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
+            var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+
+            // Get the starting Sunday
+            var startDate = firstDayOfMonth.AddDays(-(int)firstDayOfMonth.DayOfWeek);
+
+            // Get the ending Saturday
+            var endDate = lastDayOfMonth.AddDays(6 - (int)lastDayOfMonth.DayOfWeek);
+
+            // Generate all days
+            for (var date = startDate; date <= endDate; date = date.AddDays(1))
+            {
+                calendarDays.Add(date);
+            }
+
+            Logger.LogDebug("Generated {Count} calendar days for {Month} {Year}",
+                calendarDays.Count, currentDate.Month, currentDate.Year);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error generating calendar days");
+            calendarDays.Clear(); // Ensure we don't display partial data
         }
     }
 
@@ -356,6 +442,7 @@
         GenerateCalendarDays();
         selectedDate = null;
         selectedEntry = null;
+        Logger.LogInformation("Navigated to previous month: {Date}", currentDate);
     }
 
     private void NextMonth()
@@ -364,12 +451,14 @@
         GenerateCalendarDays();
         selectedDate = null;
         selectedEntry = null;
+        Logger.LogInformation("Navigated to next month: {Date}", currentDate);
     }
 
     private void SelectDate(DateTime date)
     {
         selectedDate = date;
         selectedEntry = entries.FirstOrDefault(e => e.Date.Date == date.Date);
+        Logger.LogDebug("Selected date: {Date}, HasEntry: {HasEntry}", date, selectedEntry != null);
     }
 
     private bool HasEntry(DateTime date)

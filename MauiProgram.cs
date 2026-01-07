@@ -28,23 +28,45 @@ namespace InsightJournal
             // Register ThemeService as Singleton
             builder.Services.AddSingleton<ThemeService>();
 
-            // Register JournalService
+            // Register Services with proper lifetimes
             builder.Services.AddScoped<JournalService>();
-
-            // Register PdfExportService
             builder.Services.AddScoped<PdfExportService>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
+
+            // Configure logging for debug mode
             builder.Logging.AddDebug();
+            builder.Logging.SetMinimumLevel(LogLevel.Information);
+#else
+            // Configure logging for release mode
+            builder.Logging.SetMinimumLevel(LogLevel.Warning);
 #endif
 
             var app = builder.Build();
 
-            // Initialize database
-            var scope = app.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            db.Database.EnsureCreated();
+            // Initialize database with error handling
+            try
+            {
+                var scope = app.Services.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var loggerFactory = scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger("DatabaseInitialization");
+
+                logger.LogInformation("Initializing database at: {DbPath}", dbPath);
+                db.Database.EnsureCreated();
+                logger.LogInformation("Database initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                // Log the error but don't crash the app
+                var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("DatabaseInitialization");
+                logger.LogCritical(ex, "Failed to initialize database. Application may not function correctly.");
+
+#if DEBUG
+                throw; // Re-throw in debug mode for development
+#endif
+            }
 
             return app;
         }
