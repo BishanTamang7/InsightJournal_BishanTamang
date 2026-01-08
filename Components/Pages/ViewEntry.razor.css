@@ -1,0 +1,138 @@
+﻿/* ========== VIEW ENTRY PAGE ========== */
+.entry-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.entry-header {
+    margin-bottom: 30px;
+}
+
+    .entry-header h2 {
+        margin: 0 0 10px 0;
+        color: #1a1a2e;
+    }
+
+.date-display {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+/* Alert */
+.alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.alert-error {
+    background-color: #fee;
+    border-left: 4px solid #e53e3e;
+    color: #c53030;
+}
+
+/* View Content */
+.view-content {
+    margin-top: 20px;
+}
+
+.content-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.content-body {
+    padding: 30px;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: #333;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    min-height: 200px;
+}
+
+.content-footer {
+    padding: 20px 30px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #e2e8f0;
+}
+
+.entry-timestamps {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+    .entry-timestamps span {
+        display: block;
+    }
+
+/* Button Group */
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary {
+    background-color: #718096;
+    color: white;
+}
+
+    .btn-secondary:hover {
+        background-color: #4a5568;
+    }
+
+/* Dark Mode Support */
+[data-theme="dark"] .entry-header h2 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .date-display {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .content-card {
+    background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .content-body {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .content-footer {
+    background-color: var(--bg-tertiary);
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .entry-timestamps {
+    color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .content-body {
+        padding: 20px;
+        font-size: 1rem;
+    }
+
+    .content-footer {
+        padding: 15px 20px;
+    }
+}

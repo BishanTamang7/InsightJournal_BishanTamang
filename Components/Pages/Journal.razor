@@ -55,9 +55,11 @@
     {
         <div class="empty-state-new">
             <h3>No entries found</h3>
-            <p>@(string.IsNullOrWhiteSpace(searchText) || !string.IsNullOrWhiteSpace(tagFilter) || dateFilter != "all" 
-                ? "Try adjusting your filters or search terms." 
-                : "Start your journaling journey by creating your first entry!")</p>
+            <p>
+                @(string.IsNullOrWhiteSpace(searchText) || !string.IsNullOrWhiteSpace(tagFilter) || dateFilter != "all"
+                            ? "Try adjusting your filters or search terms."
+                            : "Start your journaling journey by creating your first entry!")
+            </p>
             <button class="btn-new-entry" @onclick="GoToNewEntry">
                 Create @(filteredEntries.Count == 0 && entries.Count == 0 ? "First" : "New") Entry
             </button>
@@ -149,36 +151,6 @@
     }
 </div>
 
-<style>
-    .entry-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 8px;
-    }
-
-    .entry-tag {
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 500;
-        color: white;
-    }
-
-    .alert {
-        padding: 16px;
-        background-color: #fee;
-        border-left: 4px solid #e53e3e;
-        color: #c53030;
-        border-radius: 8px;
-        margin: 20px 0;
-    }
-
-    .alert button {
-        margin-top: 10px;
-    }
-</style>
-
 @code {
     private List<JournalEntry> entries = new();
     private List<JournalEntry> filteredEntries = new();
@@ -212,7 +184,7 @@
         {
             // Calculate date range based on filter
             DateTime? startDate = GetStartDateFromFilter();
-            
+
             // Use optimized database-level filtering
             entries = await JournalService.GetAllEntriesAsync(
                 searchText: string.IsNullOrWhiteSpace(searchText) ? null : searchText,
@@ -314,7 +286,7 @@
         {
             await JournalService.DeleteEntryAsync(entryToDelete.Id);
             Logger.LogInformation("Successfully deleted entry {EntryId}", entryToDelete.Id);
-            
+
             showDeleteModal = false;
             entryToDelete = null;
             await LoadEntries();
