@@ -9,12 +9,19 @@
 <div class="entry-container">
     @if (isLoading)
     {
-        <p>Loading...</p>
+        <div class="loading-container">
+            <p>Loading entry...</p>
+        </div>
     }
     else if (entry == null)
     {
         <div class="alert alert-error">
-            ⚠️ Entry not found!
+            Entry not found!
+        </div>
+        <div class="button-group">
+            <button class="btn btn-secondary" @onclick="BackToJournal">
+                ← Back to Journal
+            </button>
         </div>
     }
     else
@@ -26,18 +33,30 @@
 
         <div class="view-content">
             <div class="content-card">
+                @if (!string.IsNullOrWhiteSpace(entry.Tags))
+                {
+                    <div class="entry-tags-display">
+                        @foreach (var tag in TagService.ParseTags(entry.Tags))
+                        {
+                            <span class="tag-badge" style="background-color: @TagService.GetTagColor(tag)">
+                                @tag
+                            </span>
+                        }
+                    </div>
+                }
+
                 <div class="content-body">
                     @entry.Content
                 </div>
 
                 <div class="content-footer">
-                    <p class="entry-timestamps">
+                    <div class="entry-timestamps">
                         <span>Created: @entry.CreatedAt.ToString("MMM dd, yyyy h:mm tt")</span>
                         @if (entry.UpdatedAt != entry.CreatedAt)
                         {
                             <span>Last Updated: @entry.UpdatedAt.ToString("MMM dd, yyyy h:mm tt")</span>
                         }
-                    </p>
+                    </div>
                 </div>
             </div>
 
@@ -45,6 +64,31 @@
                 <button class="btn btn-secondary" @onclick="BackToJournal">
                     ← Back to Journal
                 </button>
+                <button class="btn btn-edit-action" @onclick="EditEntry">
+                    ✏️ Edit Entry
+                </button>
+                <button class="btn btn-delete-action" @onclick="ShowDeleteConfirm">
+                    🗑️ Delete Entry
+                </button>
+            </div>
+        </div>
+    }
+
+    @if (showDeleteModal)
+    {
+        <div class="modal-overlay" @onclick="CancelDelete">
+            <div class="modal-content" @onclick:stopPropagation>
+                <h3>Delete Entry</h3>
+                <p>Are you sure you want to delete "<strong>@entry?.Title</strong>"?</p>
+                <p class="warning-text">This action cannot be undone.</p>
+                <div class="modal-buttons">
+                    <button class="btn btn-delete-action" @onclick="ConfirmDelete" disabled="@isDeleting">
+                        @(isDeleting ? "Deleting..." : "Yes, Delete")
+                    </button>
+                    <button class="btn btn-secondary" @onclick="CancelDelete" disabled="@isDeleting">
+                        Cancel
+                    </button>
+                </div>
             </div>
         </div>
     }
@@ -56,6 +100,8 @@
 
     private JournalEntry? entry;
     private bool isLoading = true;
+    private bool showDeleteModal = false;
+    private bool isDeleting = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,5 +121,45 @@
     private void BackToJournal()
     {
         Navigation.NavigateTo("/journal");
+    }
+
+    private void EditEntry()
+    {
+        if (entry != null)
+        {
+            Navigation.NavigateTo($"/editentry/{entry.Id}");
+        }
+    }
+
+    private void ShowDeleteConfirm()
+    {
+        showDeleteModal = true;
+    }
+
+    private void CancelDelete()
+    {
+        if (!isDeleting)
+        {
+            showDeleteModal = false;
+        }
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (entry == null) return;
+
+        isDeleting = true;
+
+        try
+        {
+            await JournalService.DeleteEntryAsync(entry.Id);
+            Navigation.NavigateTo("/journal");
+        }
+        catch (Exception)
+        {
+            // Handle error - could add error message display here
+            isDeleting = false;
+            showDeleteModal = false;
+        }
     }
 }
