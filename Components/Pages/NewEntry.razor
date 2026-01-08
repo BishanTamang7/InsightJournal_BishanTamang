@@ -76,7 +76,7 @@
             <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
                 Select up to 2 additional moods you're experiencing
             </p>
-
+            
             <!-- Secondary Mood 1 -->
             <div class="secondary-mood-container">
                 <select class="form-select" @bind="secondaryMood1" disabled="@string.IsNullOrEmpty(primaryMood)">
@@ -147,10 +147,10 @@
 
         <div class="form-group">
             <label>Content</label>
-            <textarea class="form-textarea"
-                      rows="15"
-                      @bind="content"
-                      placeholder="Write your thoughts here..."></textarea>
+            <QuillEditor @ref="quillEditor" 
+                         EditorId="newEntryEditor"
+                         Content="@content"
+                         ContentChanged="@OnContentChanged" />
         </div>
 
         <div class="button-group">
@@ -173,10 +173,18 @@
     private string? secondaryMood1 = null;
     private string? secondaryMood2 = null;
 
+    // Quill editor reference
+    private QuillEditor? quillEditor;
+
+    private void OnContentChanged(string html)
+    {
+        content = html;
+    }
+
     private void SelectPrimaryMood(string mood)
     {
         primaryMood = mood;
-
+        
         // Clear secondary moods if they're the same as primary
         if (secondaryMood1 == mood) secondaryMood1 = null;
         if (secondaryMood2 == mood) secondaryMood2 = null;
@@ -246,14 +254,14 @@
         try
         {
             await JournalService.CreateEntryAsync(
-                title,
-                content,
+                title, 
+                content, 
                 selectedTags,
                 primaryMood,
                 secondaryMood1,
                 secondaryMood2
             );
-
+            
             successMessage = "Entry created successfully!";
 
             await Task.Delay(1000);

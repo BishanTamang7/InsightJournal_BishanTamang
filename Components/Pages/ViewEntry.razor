@@ -39,7 +39,7 @@
                     <div class="mood-display-section">
                         <div class="mood-display-label">Mood</div>
                         <div class="mood-display-badges">
-                            <div class="mood-display-badge primary"
+                            <div class="mood-display-badge primary" 
                                  style="background-color: @MoodService.GetMoodColor(entry.PrimaryMood)">
                                 <span class="mood-emoji">@MoodService.GetMoodEmoji(entry.PrimaryMood)</span>
                                 <span class="mood-name">@entry.PrimaryMood</span>
@@ -48,7 +48,7 @@
 
                             @if (!string.IsNullOrWhiteSpace(entry.SecondaryMood1))
                             {
-                                <div class="mood-display-badge secondary"
+                                <div class="mood-display-badge secondary" 
                                      style="background-color: @MoodService.GetMoodColor(entry.SecondaryMood1)">
                                     <span class="mood-emoji">@MoodService.GetMoodEmoji(entry.SecondaryMood1)</span>
                                     <span class="mood-name">@entry.SecondaryMood1</span>
@@ -57,16 +57,16 @@
 
                             @if (!string.IsNullOrWhiteSpace(entry.SecondaryMood2))
                             {
-                                <div class="mood-display-badge secondary"
+                                <div class="mood-display-badge secondary" 
                                      style="background-color: @MoodService.GetMoodColor(entry.SecondaryMood2)">
                                     <span class="mood-emoji">@MoodService.GetMoodEmoji(entry.SecondaryMood2)</span>
                                     <span class="mood-name">@entry.SecondaryMood2</span>
                                 </div>
                             }
                         </div>
-                        <div class="mood-category-indicator"
-                             style="background-color: @MoodService.GetMoodBackgroundColor(entry.PrimaryMood);
-                                            border-left-color: @MoodService.GetMoodColor(entry.PrimaryMood)">
+                        <div class="mood-category-indicator" 
+                             style="background-color: @MoodService.GetMoodBackgroundColor(entry.PrimaryMood); 
+                                    border-left-color: @MoodService.GetMoodColor(entry.PrimaryMood)">
                             @MoodService.GetCategoryEmoji(entry.MoodCategory) @entry.MoodCategory Mood
                         </div>
                     </div>
@@ -85,7 +85,7 @@
                 }
 
                 <div class="content-body">
-                    @entry.Content
+                    @((MarkupString)entry.Content)
                 </div>
 
                 <div class="content-footer">

@@ -1,0 +1,166 @@
+﻿/* Quill Editor Styling */
+.quill-editor-container {
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+    transition: border-color 0.2s;
+    min-height: 300px;
+}
+
+.quill-editor-container:focus-within {
+    border-color: var(--border-active);
+}
+
+/* Quill Toolbar */
+:global(.ql-toolbar.ql-snow) {
+    border: none !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    border-radius: 8px 8px 0 0 !important;
+    background-color: var(--bg-tertiary) !important;
+}
+
+:global(.ql-container.ql-snow) {
+    border: none !important;
+    font-size: 15px !important;
+    font-family: inherit !important;
+}
+
+:global(.ql-editor) {
+    min-height: 300px !important;
+    padding: 16px !important;
+    color: var(--text-primary) !important;
+}
+
+:global(.ql-editor.ql-blank::before) {
+    color: var(--text-secondary) !important;
+    font-style: normal !important;
+}
+
+/* Toolbar Button Styling */
+:global(.ql-snow .ql-stroke) {
+    stroke: var(--text-primary) !important;
+}
+
+:global(.ql-snow .ql-fill) {
+    fill: var(--text-primary) !important;
+}
+
+:global(.ql-snow .ql-picker-label) {
+    color: var(--text-primary) !important;
+}
+
+:global(.ql-snow .ql-picker-options) {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+:global(.ql-snow .ql-picker-item:hover) {
+    background-color: var(--bg-tertiary) !important;
+}
+
+/* Active toolbar buttons */
+:global(.ql-snow.ql-toolbar button:hover),
+:global(.ql-snow .ql-toolbar button:hover),
+:global(.ql-snow.ql-toolbar button.ql-active),
+:global(.ql-snow .ql-toolbar button.ql-active) {
+    background-color: rgba(91, 95, 199, 0.1) !important;
+}
+
+:global(.ql-snow.ql-toolbar button:hover .ql-stroke),
+:global(.ql-snow .ql-toolbar button:hover .ql-stroke),
+:global(.ql-snow.ql-toolbar button.ql-active .ql-stroke),
+:global(.ql-snow .ql-toolbar button.ql-active .ql-stroke) {
+    stroke: #5b5fc7 !important;
+}
+
+:global(.ql-snow.ql-toolbar button:hover .ql-fill),
+:global(.ql-snow .ql-toolbar button:hover .ql-fill),
+:global(.ql-snow.ql-toolbar button.ql-active .ql-fill),
+:global(.ql-snow .ql-toolbar button.ql-active .ql-fill) {
+    fill: #5b5fc7 !important;
+}
+
+/* Content Styling */
+:global(.ql-editor h1) {
+    font-size: 2em !important;
+    font-weight: bold !important;
+    margin-top: 0.67em !important;
+    margin-bottom: 0.67em !important;
+}
+
+:global(.ql-editor h2) {
+    font-size: 1.5em !important;
+    font-weight: bold !important;
+    margin-top: 0.83em !important;
+    margin-bottom: 0.83em !important;
+}
+
+:global(.ql-editor h3) {
+    font-size: 1.17em !important;
+    font-weight: bold !important;
+    margin-top: 1em !important;
+    margin-bottom: 1em !important;
+}
+
+:global(.ql-editor strong) {
+    font-weight: bold !important;
+}
+
+:global(.ql-editor em) {
+    font-style: italic !important;
+}
+
+:global(.ql-editor u) {
+    text-decoration: underline !important;
+}
+
+:global(.ql-editor s) {
+    text-decoration: line-through !important;
+}
+
+:global(.ql-editor blockquote) {
+    border-left: 4px solid var(--border-active) !important;
+    padding-left: 16px !important;
+    margin-left: 0 !important;
+    color: var(--text-secondary) !important;
+}
+
+:global(.ql-editor a) {
+    color: #5b5fc7 !important;
+    text-decoration: underline !important;
+}
+
+:global(.ql-editor code) {
+    background-color: var(--bg-tertiary) !important;
+    padding: 2px 4px !important;
+    border-radius: 4px !important;
+    font-family: 'Courier New', monospace !important;
+}
+
+:global(.ql-editor pre) {
+    background-color: var(--bg-tertiary) !important;
+    padding: 12px !important;
+    border-radius: 8px !important;
+    overflow-x: auto !important;
+}
+
+:global(.ql-editor ul),
+:global(.ql-editor ol) {
+    padding-left: 1.5em !important;
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] :global(.ql-editor) {
+    background-color: var(--bg-secondary) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    :global(.ql-toolbar.ql-snow) {
+        padding: 8px !important;
+    }
+
+    :global(.ql-editor) {
+        min-height: 250px !important;
+    }
+}
