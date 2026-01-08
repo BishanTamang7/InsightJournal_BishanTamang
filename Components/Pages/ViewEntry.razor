@@ -10,7 +10,7 @@
     @if (isLoading)
     {
         <div class="loading-container">
-            <p>Loading entry...</p>
+            <p>Loading...</p>
         </div>
     }
     else if (entry == null)
@@ -24,6 +24,49 @@
             </button>
         </div>
     }
+    else
+    {
+        <div class="entry-header">
+            <h2>@entry.Title</h2>
+            <p class="date-display">@entry.Date.ToString("dddd, MMMM dd, yyyy")</p>
+        </div>
+
+        <div class="view-content">
+            <div class="content-card">
+                @if (!string.IsNullOrWhiteSpace(entry.Tags))
+                {
+                    <div class="entry-tags-display">
+                        @foreach (var tag in TagService.ParseTags(entry.Tags))
+                        {
+                            <span class="tag-badge" style="background-color: @TagService.GetTagColor(tag)">
+                                @tag
+                            </span>
+                        }
+                    </div>
+                }
+
+                <div class="content-body">
+                    @entry.Content
+                </div>
+
+                <div class="content-footer">
+                    <div class="entry-timestamps">
+                        <span>Created: @entry.CreatedAt.ToString("MMM dd, yyyy h:mm tt")</span>
+                        @if (entry.UpdatedAt != entry.CreatedAt)
+                        {
+                            <span>Updated: @entry.UpdatedAt.ToString("MMM dd, yyyy h:mm tt")</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary" @onclick="BackToJournal">
+                    ← Back to Journal
+                </button>
+            </div>
+        </div>
+    }
 </div>
 
 @code {
@@ -32,8 +75,6 @@
 
     private JournalEntry? entry;
     private bool isLoading = true;
-    private bool showDeleteModal = false;
-    private bool isDeleting = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -53,45 +94,5 @@
     private void BackToJournal()
     {
         Navigation.NavigateTo("/journal");
-    }
-
-    private void EditEntry()
-    {
-        if (entry != null)
-        {
-            Navigation.NavigateTo($"/editentry/{entry.Id}");
-        }
-    }
-
-    private void ShowDeleteConfirm()
-    {
-        showDeleteModal = true;
-    }
-
-    private void CancelDelete()
-    {
-        if (!isDeleting)
-        {
-            showDeleteModal = false;
-        }
-    }
-
-    private async Task ConfirmDelete()
-    {
-        if (entry == null) return;
-
-        isDeleting = true;
-
-        try
-        {
-            await JournalService.DeleteEntryAsync(entry.Id);
-            Navigation.NavigateTo("/journal");
-        }
-        catch (Exception)
-        {
-            // Handle error - could add error message display here
-            isDeleting = false;
-            showDeleteModal = false;
-        }
     }
 }
