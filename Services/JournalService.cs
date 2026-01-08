@@ -40,8 +40,14 @@ namespace InsightJournal.Services
             return await GetEntryByDateAsync(DateTime.Today);
         }
 
-        // Create new entry
-        public async Task<JournalEntry> CreateEntryAsync(string title, string content, List<string> tags)
+        // Create new entry with mood
+        public async Task<JournalEntry> CreateEntryAsync(
+            string title,
+            string content,
+            List<string> tags,
+            string primaryMood,
+            string? secondaryMood1 = null,
+            string? secondaryMood2 = null)
         {
             if (string.IsNullOrWhiteSpace(title))
             {
@@ -53,6 +59,18 @@ namespace InsightJournal.Services
             {
                 _logger.LogWarning("Attempted to create entry with empty content");
                 throw new ArgumentException("Content cannot be empty.", nameof(content));
+            }
+
+            if (string.IsNullOrWhiteSpace(primaryMood))
+            {
+                _logger.LogWarning("Attempted to create entry without primary mood");
+                throw new ArgumentException("Primary mood is required.", nameof(primaryMood));
+            }
+
+            if (!MoodService.IsValidMood(primaryMood))
+            {
+                _logger.LogWarning("Invalid primary mood: {Mood}", primaryMood);
+                throw new ArgumentException($"Invalid mood: {primaryMood}", nameof(primaryMood));
             }
 
             try
@@ -73,6 +91,10 @@ namespace InsightJournal.Services
                     Title = title.Trim(),
                     Content = content.Trim(),
                     Tags = TagService.TagsToString(tags),
+                    PrimaryMood = primaryMood,
+                    SecondaryMood1 = secondaryMood1,
+                    SecondaryMood2 = secondaryMood2,
+                    MoodCategory = MoodService.GetMoodCategory(primaryMood),
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };
@@ -80,7 +102,8 @@ namespace InsightJournal.Services
                 _context.JournalEntries.Add(entry);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Successfully created entry with ID: {EntryId}", entry.Id);
+                _logger.LogInformation("Successfully created entry with ID: {EntryId} and mood: {Mood}",
+                    entry.Id, primaryMood);
                 return entry;
             }
             catch (InvalidOperationException)
@@ -94,8 +117,15 @@ namespace InsightJournal.Services
             }
         }
 
-        // Update entry
-        public async Task<JournalEntry> UpdateEntryAsync(int id, string title, string content, List<string> tags)
+        // Update entry with mood
+        public async Task<JournalEntry> UpdateEntryAsync(
+            int id,
+            string title,
+            string content,
+            List<string> tags,
+            string primaryMood,
+            string? secondaryMood1 = null,
+            string? secondaryMood2 = null)
         {
             if (string.IsNullOrWhiteSpace(title))
             {
@@ -107,6 +137,18 @@ namespace InsightJournal.Services
             {
                 _logger.LogWarning("Attempted to update entry {EntryId} with empty content", id);
                 throw new ArgumentException("Content cannot be empty.", nameof(content));
+            }
+
+            if (string.IsNullOrWhiteSpace(primaryMood))
+            {
+                _logger.LogWarning("Attempted to update entry {EntryId} without primary mood", id);
+                throw new ArgumentException("Primary mood is required.", nameof(primaryMood));
+            }
+
+            if (!MoodService.IsValidMood(primaryMood))
+            {
+                _logger.LogWarning("Invalid primary mood: {Mood}", primaryMood);
+                throw new ArgumentException($"Invalid mood: {primaryMood}", nameof(primaryMood));
             }
 
             try
@@ -121,6 +163,10 @@ namespace InsightJournal.Services
                 entry.Title = title.Trim();
                 entry.Content = content.Trim();
                 entry.Tags = TagService.TagsToString(tags);
+                entry.PrimaryMood = primaryMood;
+                entry.SecondaryMood1 = secondaryMood1;
+                entry.SecondaryMood2 = secondaryMood2;
+                entry.MoodCategory = MoodService.GetMoodCategory(primaryMood);
                 entry.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();
@@ -172,12 +218,13 @@ namespace InsightJournal.Services
             string? searchText = null,
             DateTime? startDate = null,
             DateTime? endDate = null,
-            string? tag = null)
+            string? tag = null,
+            string? moodCategory = null)
         {
             try
             {
-                _logger.LogInformation("Fetching entries with filters - Search: {Search}, StartDate: {StartDate}, EndDate: {EndDate}, Tag: {Tag}",
-                    searchText, startDate, endDate, tag);
+                _logger.LogInformation("Fetching entries with filters - Search: {Search}, StartDate: {StartDate}, EndDate: {EndDate}, Tag: {Tag}, MoodCategory: {MoodCategory}",
+                    searchText, startDate, endDate, tag, moodCategory);
 
                 var query = _context.JournalEntries.AsQueryable();
 
@@ -202,6 +249,11 @@ namespace InsightJournal.Services
                     query = query.Where(e => e.Tags.Contains(tag));
                 }
 
+                if (!string.IsNullOrWhiteSpace(moodCategory))
+                {
+                    query = query.Where(e => e.MoodCategory == moodCategory);
+                }
+
                 var entries = await query.OrderByDescending(e => e.Date).ToListAsync();
 
                 _logger.LogInformation("Successfully fetched {Count} entries", entries.Count);
@@ -224,6 +276,18 @@ namespace InsightJournal.Services
             }
 
             return await GetAllEntriesAsync(tag: tag);
+        }
+
+        // Get entries by mood category
+        public async Task<List<JournalEntry>> GetEntriesByMoodCategoryAsync(string moodCategory)
+        {
+            if (string.IsNullOrWhiteSpace(moodCategory))
+            {
+                _logger.LogWarning("Attempted to fetch entries with empty mood category");
+                throw new ArgumentException("Mood category cannot be empty.", nameof(moodCategory));
+            }
+
+            return await GetAllEntriesAsync(moodCategory: moodCategory);
         }
 
         // Get entries count for analytics
@@ -277,6 +341,67 @@ namespace InsightJournal.Services
             {
                 _logger.LogError(ex, "Error fetching entries by month for year {Year}", year);
                 return new Dictionary<string, int>(); // Graceful degradation
+            }
+        }
+
+        // Get mood distribution for analytics
+        public async Task<Dictionary<string, int>> GetMoodDistributionAsync()
+        {
+            try
+            {
+                var entries = await _context.JournalEntries.ToListAsync();
+                var distribution = new Dictionary<string, int>
+                {
+                    { "Positive", 0 },
+                    { "Neutral", 0 },
+                    { "Negative", 0 }
+                };
+
+                foreach (var entry in entries)
+                {
+                    if (!string.IsNullOrWhiteSpace(entry.MoodCategory) && distribution.ContainsKey(entry.MoodCategory))
+                    {
+                        distribution[entry.MoodCategory]++;
+                    }
+                }
+
+                return distribution;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting mood distribution");
+                return new Dictionary<string, int>
+                {
+                    { "Positive", 0 },
+                    { "Neutral", 0 },
+                    { "Negative", 0 }
+                };
+            }
+        }
+
+        // Get most frequent mood
+        public async Task<string?> GetMostFrequentMoodAsync()
+        {
+            try
+            {
+                var entries = await _context.JournalEntries.ToListAsync();
+
+                if (!entries.Any())
+                    return null;
+
+                var moodCounts = entries
+                    .Where(e => !string.IsNullOrWhiteSpace(e.PrimaryMood))
+                    .GroupBy(e => e.PrimaryMood)
+                    .Select(g => new { Mood = g.Key, Count = g.Count() })
+                    .OrderByDescending(x => x.Count)
+                    .FirstOrDefault();
+
+                return moodCounts?.Mood;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting most frequent mood");
+                return null;
             }
         }
     }

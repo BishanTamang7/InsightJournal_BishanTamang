@@ -35,6 +35,101 @@
                    placeholder="Give your entry a title..." />
         </div>
 
+        <!-- Mood Selection -->
+        <div class="form-group">
+            <label>Primary Mood <span style="color: #ef4444;">*</span></label>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+                How are you feeling today? (Required)
+            </p>
+            <div class="mood-categories">
+                @foreach (var category in MoodService.MoodsByCategory)
+                {
+                    <div class="mood-category-section">
+                        <div class="mood-category-header" style="color: @MoodService.GetCategoryColor(category.Key)">
+                            @MoodService.GetCategoryEmoji(category.Key) @category.Key
+                        </div>
+                        <div class="mood-options">
+                            @foreach (var mood in category.Value)
+                            {
+                                <label class="mood-option @(primaryMood == mood ? "selected" : "")"
+                                       style="--mood-color: @MoodService.GetMoodColor(mood);">
+                                    <input type="radio"
+                                           name="primaryMood"
+                                           value="@mood"
+                                           checked="@(primaryMood == mood)"
+                                           @onchange="@(() => SelectPrimaryMood(mood))" />
+                                    <span class="mood-label">
+                                        <span class="mood-emoji">@MoodService.GetMoodEmoji(mood)</span>
+                                        <span class="mood-name">@mood</span>
+                                    </span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Secondary Moods -->
+        <div class="form-group">
+            <label>Secondary Moods (Optional)</label>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+                Select up to 2 additional moods you're experiencing
+            </p>
+
+            <!-- Secondary Mood 1 -->
+            <div class="secondary-mood-container">
+                <select class="form-select" @bind="secondaryMood1" disabled="@string.IsNullOrEmpty(primaryMood)">
+                    <option value="">Select secondary mood 1...</option>
+                    @foreach (var mood in GetAvailableSecondaryMoods())
+                    {
+                        <option value="@mood">@MoodService.GetMoodEmoji(mood) @mood</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Secondary Mood 2 -->
+            @if (!string.IsNullOrWhiteSpace(secondaryMood1))
+            {
+                <div class="secondary-mood-container" style="margin-top: 8px;">
+                    <select class="form-select" @bind="secondaryMood2">
+                        <option value="">Select secondary mood 2...</option>
+                        @foreach (var mood in GetAvailableSecondaryMoods())
+                        {
+                            <option value="@mood">@MoodService.GetMoodEmoji(mood) @mood</option>
+                        }
+                    </select>
+                </div>
+            }
+
+            <!-- Selected Moods Display -->
+            @if (!string.IsNullOrEmpty(primaryMood) || !string.IsNullOrEmpty(secondaryMood1) || !string.IsNullOrEmpty(secondaryMood2))
+            {
+                <div class="selected-moods-display">
+                    @if (!string.IsNullOrEmpty(primaryMood))
+                    {
+                        <div class="mood-badge primary" style="background-color: @MoodService.GetMoodColor(primaryMood)">
+                            @MoodService.GetMoodEmoji(primaryMood) @primaryMood (Primary)
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(secondaryMood1))
+                    {
+                        <div class="mood-badge secondary" style="background-color: @MoodService.GetMoodColor(secondaryMood1)">
+                            @MoodService.GetMoodEmoji(secondaryMood1) @secondaryMood1
+                            <button type="button" class="remove-mood" @onclick="() => RemoveSecondaryMood(1)">×</button>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(secondaryMood2))
+                    {
+                        <div class="mood-badge secondary" style="background-color: @MoodService.GetMoodColor(secondaryMood2)">
+                            @MoodService.GetMoodEmoji(secondaryMood2) @secondaryMood2
+                            <button type="button" class="remove-mood" @onclick="() => RemoveSecondaryMood(2)">×</button>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
         <div class="form-group">
             <label>Tags</label>
             <div class="tags-container">
@@ -73,6 +168,43 @@
     private string? errorMessage;
     private string? successMessage;
 
+    // Mood tracking
+    private string primaryMood = "";
+    private string? secondaryMood1 = null;
+    private string? secondaryMood2 = null;
+
+    private void SelectPrimaryMood(string mood)
+    {
+        primaryMood = mood;
+
+        // Clear secondary moods if they're the same as primary
+        if (secondaryMood1 == mood) secondaryMood1 = null;
+        if (secondaryMood2 == mood) secondaryMood2 = null;
+    }
+
+    private List<string> GetAvailableSecondaryMoods()
+    {
+        return MoodService.GetAvailableSecondaryMoods(primaryMood, secondaryMood1);
+    }
+
+    private void RemoveSecondaryMood(int moodNumber)
+    {
+        if (moodNumber == 1)
+        {
+            secondaryMood1 = null;
+            // If mood 2 exists, shift it to mood 1
+            if (!string.IsNullOrWhiteSpace(secondaryMood2))
+            {
+                secondaryMood1 = secondaryMood2;
+                secondaryMood2 = null;
+            }
+        }
+        else if (moodNumber == 2)
+        {
+            secondaryMood2 = null;
+        }
+    }
+
     private void ToggleTag(string tag, bool isChecked)
     {
         if (isChecked)
@@ -105,9 +237,23 @@
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(primaryMood))
+        {
+            errorMessage = "Please select your primary mood.";
+            return;
+        }
+
         try
         {
-            await JournalService.CreateEntryAsync(title, content, selectedTags);
+            await JournalService.CreateEntryAsync(
+                title,
+                content,
+                selectedTags,
+                primaryMood,
+                secondaryMood1,
+                secondaryMood2
+            );
+
             successMessage = "Entry created successfully!";
 
             await Task.Delay(1000);

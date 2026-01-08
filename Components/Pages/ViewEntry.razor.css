@@ -50,6 +50,87 @@
     border: 1px solid var(--border-color);
 }
 
+/* Mood Display Section */
+.mood-display-section {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.mood-display-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mood-display-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.mood-display-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 24px;
+    color: white;
+    font-weight: 500;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+    .mood-display-badge.primary {
+        padding: 12px 18px;
+        font-size: 15px;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+
+    .mood-display-badge.secondary {
+        opacity: 0.95;
+        font-size: 13px;
+    }
+
+.mood-emoji {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.mood-display-badge.primary .mood-emoji {
+    font-size: 24px;
+}
+
+.mood-name {
+    font-weight: 600;
+}
+
+.mood-type-label {
+    font-size: 11px;
+    opacity: 0.8;
+    font-weight: 400;
+    margin-left: 4px;
+    padding: 2px 6px;
+    background-color: rgba(255,255,255,0.2);
+    border-radius: 8px;
+}
+
+.mood-category-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    border-left: 3px solid;
+    color: var(--text-primary);
+}
+
 .content-body {
     font-size: 1.05rem;
     line-height: 1.7;
@@ -135,6 +216,10 @@
     color: #f87171;
 }
 
+[data-theme="dark"] .mood-category-indicator {
+    color: var(--text-primary);
+}
+
 /* Responsive */
 @media (max-width: 640px) {
     .entry-container {
@@ -152,5 +237,14 @@
 
     .content-body {
         font-size: 1rem;
+    }
+
+    .mood-display-badges {
+        flex-direction: column;
+    }
+
+    .mood-display-badge {
+        width: 100%;
+        justify-content: center;
     }
 }

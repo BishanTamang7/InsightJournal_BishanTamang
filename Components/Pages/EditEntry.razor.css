@@ -1,8 +1,10 @@
-﻿/* ========== EDIT ENTRY PAGE ========== */
+﻿/* ========== NEW ENTRY PAGE ========== */
 .entry-container {
     max-width: 900px;
-    margin: 0 auto;
-    padding: 20px;
+    margin: 0;
+    padding: 20px 0 0 24px;
+    background-color: var(--bg-primary);
+    min-height: 100vh;
 }
 
 .entry-header {
@@ -85,6 +87,168 @@
     .form-textarea:focus {
         outline: none;
         border-color: #4c51bf;
+    }
+
+/* ========== MOOD SELECTION STYLES ========== */
+.mood-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.mood-category-section {
+    background-color: var(--bg-tertiary);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.mood-category-header {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mood-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.mood-option {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+}
+
+    .mood-option input[type="radio"] {
+        display: none;
+    }
+
+.mood-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 8px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    background-color: var(--bg-secondary);
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.mood-emoji {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.mood-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.mood-option:hover .mood-label {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: var(--mood-color);
+}
+
+.mood-option.selected .mood-label {
+    border-color: var(--mood-color);
+    background-color: var(--mood-color);
+}
+
+    .mood-option.selected .mood-label .mood-name {
+        color: white;
+        font-weight: 600;
+    }
+
+    .mood-option.selected .mood-label .mood-emoji {
+        transform: scale(1.1);
+    }
+
+/* Secondary Mood Selection */
+.secondary-mood-container {
+    margin-bottom: 8px;
+}
+
+.form-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 15px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+    .form-select:focus {
+        outline: none;
+        border-color: #4c51bf;
+    }
+
+    .form-select:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background-color: var(--bg-tertiary);
+    }
+
+/* Selected Moods Display */
+.selected-moods-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.mood-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    position: relative;
+}
+
+    .mood-badge.primary {
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+
+    .mood-badge.secondary {
+        opacity: 0.9;
+    }
+
+.remove-mood {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 4px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+    .remove-mood:hover {
+        background-color: rgba(0,0,0,0.2);
     }
 
 /* Tags Container */
@@ -198,8 +362,36 @@
 }
 
 [data-theme="dark"] .form-input,
-[data-theme="dark"] .form-textarea {
+[data-theme="dark"] .form-textarea,
+[data-theme="dark"] .form-select {
     background-color: var(--bg-tertiary);
     color: var(--text-primary);
     border-color: var(--border-color);
+}
+
+[data-theme="dark"] .mood-category-section {
+    background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .mood-label {
+    background-color: var(--bg-tertiary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .entry-container {
+        padding: 20px 16px;
+    }
+
+    .mood-options {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+
+    .mood-emoji {
+        font-size: 24px;
+    }
+
+    .mood-name {
+        font-size: 12px;
+    }
 }
