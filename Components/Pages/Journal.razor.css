@@ -1,4 +1,4 @@
-﻿/* ========== JOURNAL PAGE ========== */
+﻿/* ========== JOURNAL PAGE - COMPACT DESIGN ========== */
 .journal-page {
     max-width: 1200px;
     margin: 0 auto;
@@ -114,7 +114,7 @@
         transform: translateY(-1px);
     }
 
-/* Entries List */
+/* ========== COMPACT ENTRY CARDS ========== */
 .entries-list {
     display: flex;
     flex-direction: column;
@@ -126,67 +126,81 @@
     padding-bottom: 20px;
 }
 
-/* Entry Row */
-.entry-row {
+.entry-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    padding: 16px 20px;
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     transition: all 0.2s;
+    cursor: pointer;
+    gap: 16px;
 }
 
-    .entry-row:hover {
+    .entry-card:hover {
         border-color: var(--border-active);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transform: translateY(-1px);
     }
 
-.entry-info {
+.entry-card-content {
     flex: 1;
+    min-width: 0;
 }
 
-.entry-title {
-    font-size: 18px;
+.entry-card-title {
+    font-size: 16px;
     font-weight: 600;
     margin: 0 0 8px 0;
     color: var(--text-primary);
 }
 
-.entry-meta {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin: 0;
-}
-
-/* Entry Tags */
-.entry-tags {
+.entry-card-meta {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 8px;
-}
-
-.entry-tag {
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
-    color: white;
-}
-
-/* Entry Actions */
-.entry-actions {
-    display: flex;
-    gap: 8px;
     align-items: center;
     flex-wrap: wrap;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
 }
 
-/* Common Button Styles for Action Buttons */
-.btn-action {
+.meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.meta-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.meta-separator {
+    color: var(--border-color);
+    margin: 0 4px;
+}
+
+.meta-mood {
+    font-weight: 600;
+}
+
+.meta-tags {
+    color: var(--text-primary);
+}
+
+/* Action Buttons Container */
+.entry-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* Action Buttons Base Style */
+.entry-card-btn {
     padding: 10px 20px;
+    color: white;
     border: none;
     border-radius: 8px;
     font-size: 14px;
@@ -196,14 +210,13 @@
     white-space: nowrap;
 }
 
-    .btn-action:active {
+    .entry-card-btn:active {
         transform: translateY(0);
     }
 
 /* View Button */
 .btn-view {
     background-color: #5b5fc7;
-    color: white;
 }
 
     .btn-view:hover {
@@ -214,7 +227,6 @@
 /* Edit Button */
 .btn-edit {
     background-color: #38a169;
-    color: white;
 }
 
     .btn-edit:hover {
@@ -225,7 +237,6 @@
 /* Delete Button */
 .btn-delete {
     background-color: #e53e3e;
-    color: white;
 }
 
     .btn-delete:hover {
@@ -332,8 +343,40 @@
     justify-content: flex-end;
 }
 
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-danger {
+    background-color: #e53e3e;
+    color: white;
+}
+
+    .btn-danger:hover {
+        background-color: #c53030;
+    }
+
+.btn-secondary {
+    background-color: #718096;
+    color: white;
+}
+
+    .btn-secondary:hover {
+        background-color: #4a5568;
+    }
+
 /* Responsive Design */
 @media (max-width: 768px) {
+    .journal-page {
+        padding: 20px 16px 0 16px;
+    }
+
     .journal-controls {
         flex-direction: column;
         align-items: stretch;
@@ -344,17 +387,27 @@
         width: 100%;
     }
 
-    .entry-row {
+    .entry-card {
         flex-direction: column;
         align-items: stretch;
-        gap: 16px;
+        gap: 12px;
     }
 
-    .entry-actions {
+    .entry-card-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .meta-separator {
+        display: none;
+    }
+
+    .entry-card-actions {
         width: 100%;
     }
 
-    .btn-action {
+    .entry-card-btn {
         flex: 1;
     }
 
@@ -369,7 +422,7 @@
     background-color: var(--bg-tertiary);
 }
 
-[data-theme="dark"] .entry-row:hover {
+[data-theme="dark"] .entry-card:hover {
     box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
 }
 

@@ -35,6 +35,19 @@
                     <option value="@tag">@tag</option>
                 }
             </select>
+
+            <select class="filter-dropdown mood-filter" @bind="moodFilter" @bind:after="FilterEntries">
+                <option value="">All Moods</option>
+                <option value="" disabled>──────────</option>
+                <option value="Positive">😊 Positive</option>
+                <option value="Neutral">😐 Neutral</option>
+                <option value="Negative">😢 Negative</option>
+                <option value="" disabled>──────────</option>
+                @foreach (var mood in MoodService.AllMoods)
+                {
+                    <option value="@mood">@MoodService.GetMoodEmoji(mood) @mood</option>
+                }
+            </select>
         </div>
     </div>
 
@@ -56,7 +69,7 @@
         <div class="empty-state-new">
             <h3>No entries found</h3>
             <p>
-                @(string.IsNullOrWhiteSpace(searchText) || !string.IsNullOrWhiteSpace(tagFilter) || dateFilter != "all"
+                @(string.IsNullOrWhiteSpace(searchText) || !string.IsNullOrWhiteSpace(tagFilter) || !string.IsNullOrWhiteSpace(moodFilter) || dateFilter != "all"
                             ? "Try adjusting your filters or search terms."
                             : "Start your journaling journey by creating your first entry!")
             </p>
@@ -70,32 +83,56 @@
         <div class="entries-list">
             @foreach (var entry in GetPagedEntries())
             {
-                <div class="entry-row">
-                    <div class="entry-info">
-                        <h3 class="entry-title">@entry.Title</h3>
-                        <p class="entry-meta">
-                            Date: @entry.Date.ToString("yyyy-MM-dd")
-                        </p>
-                        @if (!string.IsNullOrWhiteSpace(entry.Tags))
-                        {
-                            <div class="entry-tags">
-                                @foreach (var tag in TagService.ParseTags(entry.Tags))
-                                {
-                                    <span class="entry-tag" style="background-color: @TagService.GetTagColor(tag)">
-                                        @tag
+                <div class="entry-card" @onclick="() => ViewEntry(entry)">
+                    <div class="entry-card-content">
+                        <h3 class="entry-card-title">@entry.Title</h3>
+                        <div class="entry-card-meta">
+                            <span class="meta-item">
+                                <span class="meta-label">Date:</span> @entry.Date.ToString("yyyy-MM-dd")
+                            </span>
+                            
+                            @if (!string.IsNullOrWhiteSpace(entry.PrimaryMood))
+                            {
+                                <span class="meta-separator">|</span>
+                                <span class="meta-item">
+                                    <span class="meta-label">Mood:</span> 
+                                    <span class="meta-mood" style="color: @MoodService.GetMoodColor(entry.PrimaryMood)">
+                                        @entry.MoodCategory
                                     </span>
-                                }
-                            </div>
-                        }
+                                </span>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(entry.Tags))
+                            {
+                                <span class="meta-separator">|</span>
+                                <span class="meta-item">
+                                    <span class="meta-label">Tags:</span> 
+                                    <span class="meta-tags">
+                                        @foreach (var tag in TagService.ParseTags(entry.Tags).Take(3))
+                                        {
+                                            <text>@tag</text>
+                                            @if (tag != TagService.ParseTags(entry.Tags).Take(3).Last())
+                                            {
+                                                <text>, </text>
+                                            }
+                                        }
+                                        @if (TagService.ParseTags(entry.Tags).Count > 3)
+                                        {
+                                            <text>...</text>
+                                        }
+                                    </span>
+                                </span>
+                            }
+                        </div>
                     </div>
-                    <div class="entry-actions">
-                        <button class="btn-action btn-view" @onclick="() => ViewEntry(entry)">
+                    <div class="entry-card-actions">
+                        <button class="entry-card-btn btn-view" @onclick:stopPropagation @onclick="() => ViewEntry(entry)">
                             View
                         </button>
-                        <button class="btn-action btn-edit" @onclick="() => EditEntry(entry)">
+                        <button class="entry-card-btn btn-edit" @onclick:stopPropagation @onclick="() => EditEntry(entry)">
                             Edit
                         </button>
-                        <button class="btn-action btn-delete" @onclick="() => ShowDeleteConfirm(entry)">
+                        <button class="entry-card-btn btn-delete" @onclick:stopPropagation @onclick="() => ShowDeleteConfirm(entry)">
                             Delete
                         </button>
                     </div>
@@ -163,10 +200,11 @@
     private string searchText = "";
     private string dateFilter = "all";
     private string tagFilter = "";
+    private string moodFilter = "";
 
     // Pagination
     private int currentPage = 1;
-    private int pageSize = 4;
+    private int pageSize = 10;
     private int totalPages => (int)Math.Ceiling(filteredEntries.Count / (double)pageSize);
 
     protected override async Task OnInitializedAsync()
@@ -182,17 +220,16 @@
 
         try
         {
-            // Calculate date range based on filter
             DateTime? startDate = GetStartDateFromFilter();
 
-            // Use optimized database-level filtering
             entries = await JournalService.GetAllEntriesAsync(
                 searchText: string.IsNullOrWhiteSpace(searchText) ? null : searchText,
                 startDate: startDate,
                 tag: string.IsNullOrWhiteSpace(tagFilter) ? null : tagFilter
             );
 
-            filteredEntries = entries;
+            filteredEntries = ApplyMoodFilter(entries);
+            
             Logger.LogInformation("Successfully loaded {Count} entries", entries.Count);
         }
         catch (ApplicationException ex)
@@ -213,6 +250,27 @@
         }
     }
 
+    private List<JournalEntry> ApplyMoodFilter(List<JournalEntry> entriesToFilter)
+    {
+        if (string.IsNullOrWhiteSpace(moodFilter))
+        {
+            return entriesToFilter;
+        }
+
+        if (moodFilter == "Positive" || moodFilter == "Neutral" || moodFilter == "Negative")
+        {
+            return entriesToFilter
+                .Where(e => e.MoodCategory == moodFilter)
+                .ToList();
+        }
+
+        return entriesToFilter
+            .Where(e => e.PrimaryMood == moodFilter || 
+                       e.SecondaryMood1 == moodFilter || 
+                       e.SecondaryMood2 == moodFilter)
+            .ToList();
+    }
+
     private DateTime? GetStartDateFromFilter()
     {
         var now = DateTime.Today;
@@ -229,7 +287,7 @@
 
     private async Task FilterEntries()
     {
-        currentPage = 1; // Reset to first page when filtering
+        currentPage = 1;
         await LoadEntries();
     }
 
