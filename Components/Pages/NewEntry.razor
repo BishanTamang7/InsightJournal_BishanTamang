@@ -4,11 +4,11 @@
 @inject JournalService JournalService
 @inject NavigationManager Navigation
 
-<PageTitle>New Entry</PageTitle>
+<PageTitle>@(isEditMode ? "Edit Today's Entry" : "New Entry")</PageTitle>
 
 <div class="entry-container">
     <div class="entry-header">
-        <h2>New Entry</h2>
+        <h2>@(isEditMode ? "Edit Today's Entry" : "New Entry")</h2>
         <p class="date-display">@DateTime.Today.ToString("dddd, MMMM dd, yyyy")</p>
     </div>
 
@@ -28,11 +28,12 @@
 
     <div class="entry-form">
         <div class="form-group">
-            <label>Title</label>
+            <label>Title <span style="color: #ef4444;">*</span></label>
             <input type="text"
                    class="form-input"
                    @bind="title"
-                   placeholder="Give your entry a title..." />
+                   placeholder="Give your entry a title... (Required)"
+                   required />
         </div>
 
         <!-- Mood Selection -->
@@ -70,13 +71,61 @@
             </div>
         </div>
 
+        <!-- Manual Category Selector -->
+        <div class="form-group">
+            <label>Category <span style="color: #ef4444;">*</span></label>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+                Select the emotional category (Required)
+            </p>
+            <div class="category-selector">
+                <label class="category-option @(selectedCategory == "Positive" ? "selected" : "")"
+                       style="--category-color: #10b981;">
+                    <input type="radio"
+                           name="category"
+                           value="Positive"
+                           checked="@(selectedCategory == "Positive")"
+                           @onchange="@(() => selectedCategory = "Positive")" />
+                    <span class="category-content">
+                        <span class="category-emoji">😊</span>
+                        <span class="category-name">Positive</span>
+                    </span>
+                </label>
+
+                <label class="category-option @(selectedCategory == "Neutral" ? "selected" : "")"
+                       style="--category-color: #6b7280;">
+                    <input type="radio"
+                           name="category"
+                           value="Neutral"
+                           checked="@(selectedCategory == "Neutral")"
+                           @onchange="@(() => selectedCategory = "Neutral")" />
+                    <span class="category-content">
+                        <span class="category-emoji">😐</span>
+                        <span class="category-name">Neutral</span>
+                    </span>
+                </label>
+
+                <label class="category-option @(selectedCategory == "Negative" ? "selected" : "")"
+                       style="--category-color: #ef4444;">
+                    <input type="radio"
+                           name="category"
+                           value="Negative"
+                           checked="@(selectedCategory == "Negative")"
+                           @onchange="@(() => selectedCategory = "Negative")" />
+                    <span class="category-content">
+                        <span class="category-emoji">😢</span>
+                        <span class="category-name">Negative</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+
         <!-- Secondary Moods -->
         <div class="form-group">
             <label>Secondary Moods (Optional)</label>
             <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
                 Select up to 2 additional moods you're experiencing
             </p>
-            
+
             <!-- Secondary Mood 1 -->
             <div class="secondary-mood-container">
                 <select class="form-select" @bind="secondaryMood1" disabled="@string.IsNullOrEmpty(primaryMood)">
@@ -130,8 +179,14 @@
             }
         </div>
 
+        <!-- Tags Section -->
         <div class="form-group">
-            <label>Tags</label>
+            <label>Tags <span style="color: #ef4444;">*</span></label>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+                Select at least one predefined tag or add a custom one (Required)
+            </p>
+
+            <!-- Predefined Tags -->
             <div class="tags-container">
                 @foreach (var tag in TagService.PredefinedTags)
                 {
@@ -143,28 +198,116 @@
                     </label>
                 }
             </div>
+
+            <!-- Custom Tag Input -->
+            <div class="custom-tag-section">
+                <label class="custom-tag-label">Add Custom Tag</label>
+                <div class="custom-tag-input-row">
+                    <input type="text"
+                           class="form-input"
+                           @bind="customTagInput"
+                           @onkeydown="@HandleCustomTagKeyPress"
+                           placeholder="Type custom tag and press Enter"
+                           maxlength="30" />
+                    <button type="button" class="btn-add-tag" @onclick="AddCustomTag">
+                        + Add
+                    </button>
+                </div>
+
+                @if (customTags.Any())
+                {
+                    <div class="custom-tags-list">
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">
+                            Custom Tags:
+                        </p>
+                        <div class="tags-container">
+                            @foreach (var tag in customTags)
+                            {
+                                <div class="custom-tag-badge">
+                                    <span>@tag</span>
+                                    <button type="button" class="remove-tag" @onclick="() => RemoveCustomTag(tag)">×</button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
 
+        <!-- Rich Text Editor -->
         <div class="form-group">
-            <label>Content</label>
-            <QuillEditor @ref="quillEditor" 
+            <label>Content <span style="color: #ef4444;">*</span></label>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+                Write your journal entry (Required)
+            </p>
+            <QuillEditor @ref="quillEditor"
                          EditorId="newEntryEditor"
                          Content="@content"
                          ContentChanged="@OnContentChanged" />
         </div>
 
+        <!-- Timestamps (if editing) -->
+        @if (isEditMode && existingEntry != null)
+        {
+            <div class="timestamps-display">
+                <p><strong>Created:</strong> @existingEntry.CreatedAt.ToString("MMM dd, yyyy h:mm tt")</p>
+                <p><strong>Last Updated:</strong> @existingEntry.UpdatedAt.ToString("MMM dd, yyyy h:mm tt")</p>
+            </div>
+        }
+
+        <!-- Action Buttons -->
         <div class="button-group">
-            <button class="btn btn-primary" @onclick="CreateEntry">
-                💾 Save Entry
-            </button>
+            @if (isEditMode)
+            {
+                <button class="btn btn-success" @onclick="UpdateEntry">
+                    ✏️ Update Entry
+                </button>
+                <button class="btn btn-danger" @onclick="ShowDeleteConfirm">
+                    🗑️ Delete Entry
+                </button>
+                <button class="btn btn-secondary" @onclick="Cancel">
+                    Cancel
+                </button>
+            }
+            else
+            {
+                <button class="btn btn-primary" @onclick="CreateEntry">
+                    💾 Save Entry
+                </button>
+                <button class="btn btn-secondary" @onclick="Cancel">
+                    Cancel
+                </button>
+            }
         </div>
     </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteModal)
+{
+    <div class="modal-overlay" @onclick="CancelDelete">
+        <div class="modal-content" @onclick:stopPropagation>
+            <h3>Delete Today's Entry</h3>
+            <p>Are you sure you want to delete "<strong>@title</strong>"?</p>
+            <p class="warning-text">This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" @onclick="ConfirmDelete" disabled="@isDeleting">
+                    @(isDeleting ? "Deleting..." : "Yes, Delete")
+                </button>
+                <button class="btn btn-secondary" @onclick="CancelDelete" disabled="@isDeleting">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     private string title = "";
     private string content = "";
     private List<string> selectedTags = new();
+    private List<string> customTags = new();
+    private string customTagInput = "";
     private string? errorMessage;
     private string? successMessage;
 
@@ -172,9 +315,48 @@
     private string primaryMood = "";
     private string? secondaryMood1 = null;
     private string? secondaryMood2 = null;
+    private string selectedCategory = ""; // Manual category selection
+
+    // Edit mode
+    private bool isEditMode = false;
+    private JournalEntry? existingEntry = null;
+
+    // Delete confirmation
+    private bool showDeleteModal = false;
+    private bool isDeleting = false;
 
     // Quill editor reference
     private QuillEditor? quillEditor;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if today's entry already exists
+        existingEntry = await JournalService.GetTodayEntryAsync();
+
+        if (existingEntry != null)
+        {
+            // Entry exists - load it for editing
+            isEditMode = true;
+            LoadExistingEntry();
+        }
+    }
+
+    private void LoadExistingEntry()
+    {
+        if (existingEntry == null) return;
+
+        title = existingEntry.Title;
+        content = existingEntry.Content;
+
+        var allTags = TagService.ParseTags(existingEntry.Tags);
+        selectedTags = allTags.Where(t => TagService.PredefinedTags.Contains(t)).ToList();
+        customTags = allTags.Where(t => !TagService.PredefinedTags.Contains(t)).ToList();
+
+        primaryMood = existingEntry.PrimaryMood ?? "";
+        secondaryMood1 = existingEntry.SecondaryMood1;
+        secondaryMood2 = existingEntry.SecondaryMood2;
+        selectedCategory = existingEntry.MoodCategory ?? ""; // Load existing category
+    }
 
     private void OnContentChanged(string html)
     {
@@ -184,8 +366,6 @@
     private void SelectPrimaryMood(string mood)
     {
         primaryMood = mood;
-        
-        // Clear secondary moods if they're the same as primary
         if (secondaryMood1 == mood) secondaryMood1 = null;
         if (secondaryMood2 == mood) secondaryMood2 = null;
     }
@@ -200,7 +380,6 @@
         if (moodNumber == 1)
         {
             secondaryMood1 = null;
-            // If mood 2 exists, shift it to mood 1
             if (!string.IsNullOrWhiteSpace(secondaryMood2))
             {
                 secondaryMood1 = secondaryMood2;
@@ -228,6 +407,48 @@
         }
     }
 
+    private async Task HandleCustomTagKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await Task.Run(() => AddCustomTag());
+        }
+    }
+
+    private void AddCustomTag()
+    {
+        if (string.IsNullOrWhiteSpace(customTagInput)) return;
+
+        var trimmedTag = customTagInput.Trim();
+
+        // Check if it's not a predefined tag and not already in custom tags
+        if (!TagService.PredefinedTags.Contains(trimmedTag) &&
+            !customTags.Contains(trimmedTag) &&
+            !selectedTags.Contains(trimmedTag))
+        {
+            customTags.Add(trimmedTag);
+            customTagInput = "";
+        }
+        else
+        {
+            errorMessage = "Tag already exists or is a predefined tag.";
+            Task.Run(async () =>
+            {
+                await Task.Delay(2000);
+                await InvokeAsync(() =>
+                {
+                    errorMessage = null;
+                    StateHasChanged();
+                });
+            });
+        }
+    }
+
+    private void RemoveCustomTag(string tag)
+    {
+        customTags.Remove(tag);
+    }
+
     private async Task CreateEntry()
     {
         errorMessage = null;
@@ -251,25 +472,142 @@
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(selectedCategory))
+        {
+            errorMessage = "Please select a category.";
+            return;
+        }
+
+        // Validate tags - at least one tag required
+        var allTags = selectedTags.Concat(customTags).ToList();
+        if (!allTags.Any())
+        {
+            errorMessage = "Please select or add at least one tag.";
+            return;
+        }
+
         try
         {
+            // Pass manual category to service
             await JournalService.CreateEntryAsync(
-                title, 
-                content, 
-                selectedTags,
+                title,
+                content,
+                allTags,
                 primaryMood,
                 secondaryMood1,
-                secondaryMood2
+                secondaryMood2,
+                selectedCategory // Pass manual category
             );
-            
+
             successMessage = "Entry created successfully!";
 
             await Task.Delay(1000);
-            Navigation.NavigateTo("/journal");
+            Navigation.NavigateTo("/");
         }
         catch (Exception ex)
         {
             errorMessage = ex.Message;
         }
+    }
+
+    private async Task UpdateEntry()
+    {
+        errorMessage = null;
+        successMessage = null;
+
+        if (existingEntry == null) return;
+
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            errorMessage = "Please enter a title for your entry.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            errorMessage = "Please write some content for your entry.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(primaryMood))
+        {
+            errorMessage = "Please select your primary mood.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(selectedCategory))
+        {
+            errorMessage = "Please select a category.";
+            return;
+        }
+
+        // Validate tags - at least one tag required
+        var allTags = selectedTags.Concat(customTags).ToList();
+        if (!allTags.Any())
+        {
+            errorMessage = "Please select or add at least one tag.";
+            return;
+        }
+
+        try
+        {
+            // Pass manual category to service
+            await JournalService.UpdateEntryAsync(
+                existingEntry.Id,
+                title,
+                content,
+                allTags,
+                primaryMood,
+                secondaryMood1,
+                secondaryMood2,
+                selectedCategory // Pass manual category
+            );
+
+            successMessage = "Entry updated successfully!";
+
+            await Task.Delay(1000);
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private void ShowDeleteConfirm()
+    {
+        showDeleteModal = true;
+    }
+
+    private void CancelDelete()
+    {
+        if (!isDeleting)
+        {
+            showDeleteModal = false;
+        }
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (existingEntry == null) return;
+
+        isDeleting = true;
+
+        try
+        {
+            await JournalService.DeleteEntryAsync(existingEntry.Id);
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception)
+        {
+            isDeleting = false;
+            showDeleteModal = false;
+            errorMessage = "Failed to delete entry. Please try again.";
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/");
     }
 }

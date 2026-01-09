@@ -40,14 +40,15 @@ namespace InsightJournal.Services
             return await GetEntryByDateAsync(DateTime.Today);
         }
 
-        // Create new entry with mood
+        // Create new entry with mood and manual category
         public async Task<JournalEntry> CreateEntryAsync(
             string title,
             string content,
             List<string> tags,
             string primaryMood,
             string? secondaryMood1 = null,
-            string? secondaryMood2 = null)
+            string? secondaryMood2 = null,
+            string? manualCategory = null) // NEW: Optional manual category
         {
             if (string.IsNullOrWhiteSpace(title))
             {
@@ -85,6 +86,11 @@ namespace InsightJournal.Services
                     throw new InvalidOperationException("You already have an entry for today!");
                 }
 
+                // Use manual category if provided, otherwise auto-calculate
+                string moodCategory = !string.IsNullOrWhiteSpace(manualCategory)
+                    ? manualCategory
+                    : MoodService.GetMoodCategory(primaryMood);
+
                 var entry = new JournalEntry
                 {
                     Date = today,
@@ -94,7 +100,7 @@ namespace InsightJournal.Services
                     PrimaryMood = primaryMood,
                     SecondaryMood1 = secondaryMood1,
                     SecondaryMood2 = secondaryMood2,
-                    MoodCategory = MoodService.GetMoodCategory(primaryMood),
+                    MoodCategory = moodCategory, // Use manual or auto-calculated
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };
@@ -102,8 +108,8 @@ namespace InsightJournal.Services
                 _context.JournalEntries.Add(entry);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Successfully created entry with ID: {EntryId} and mood: {Mood}",
-                    entry.Id, primaryMood);
+                _logger.LogInformation("Successfully created entry with ID: {EntryId}, mood: {Mood}, category: {Category}",
+                    entry.Id, primaryMood, moodCategory);
                 return entry;
             }
             catch (InvalidOperationException)
@@ -117,7 +123,7 @@ namespace InsightJournal.Services
             }
         }
 
-        // Update entry with mood
+        // Update entry with mood and manual category
         public async Task<JournalEntry> UpdateEntryAsync(
             int id,
             string title,
@@ -125,7 +131,8 @@ namespace InsightJournal.Services
             List<string> tags,
             string primaryMood,
             string? secondaryMood1 = null,
-            string? secondaryMood2 = null)
+            string? secondaryMood2 = null,
+            string? manualCategory = null) // NEW: Optional manual category
         {
             if (string.IsNullOrWhiteSpace(title))
             {
@@ -166,7 +173,12 @@ namespace InsightJournal.Services
                 entry.PrimaryMood = primaryMood;
                 entry.SecondaryMood1 = secondaryMood1;
                 entry.SecondaryMood2 = secondaryMood2;
-                entry.MoodCategory = MoodService.GetMoodCategory(primaryMood);
+
+                // Use manual category if provided, otherwise auto-calculate
+                entry.MoodCategory = !string.IsNullOrWhiteSpace(manualCategory)
+                    ? manualCategory
+                    : MoodService.GetMoodCategory(primaryMood);
+
                 entry.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();
