@@ -8,338 +8,248 @@
 <PageTitle>Dashboard - InsightJournal</PageTitle>
 
 <div class="dashboard-page">
-    <!-- Enhanced Greeting Section -->
-    <div class="greeting-section">
-        <div class="greeting-content">
-            <div>
-                <h1 class="greeting-title">@GetGreeting(), ready to journal? ✨</h1>
-                <p class="greeting-date">@DateTime.Today.ToString("dddd, MMMM dd, yyyy")</p>
-            </div>
-
-            @if (!isLoading && !hasError)
-            {
-                <div class="today-status-badge @(todayEntry != null ? "written" : "not-written")">
-                    <span class="status-icon">@(todayEntry != null ? "✅" : "📝")</span>
-                    <span class="status-text">
-                        @(todayEntry != null ? "You've journaled today!" : "Haven't written today yet")
-                    </span>
-                </div>
-            }
-        </div>
+    <!-- Simple Header -->
+    <div class="dashboard-header">
+        <h1>@GetGreeting() 👋</h1>
+        <p class="date">@DateTime.Today.ToString("MMMM dd, yyyy")</p>
     </div>
 
     @if (isLoading)
     {
-        <div class="loading-state">
-            <p>Loading dashboard...</p>
+        <div class="loading">
+            <p>Loading...</p>
         </div>
     }
     else if (hasError)
     {
-        <div class="alert alert-error">
+        <div class="error-box">
             <p>⚠️ @errorMessage</p>
-            <button class="btn btn-secondary" @onclick="LoadDashboard">Retry</button>
+            <button class="btn-retry" @onclick="LoadDashboard">Retry</button>
         </div>
     }
     else
     {
-        <!-- Quick Action Buttons -->
-        <div class="quick-actions-grid">
-            <button class="action-card new-entry" @onclick="CreateNewEntry">
-                <div class="action-icon" style="background: linear-gradient(135deg, #5b5fc7 0%, #4a4fb0 100%);">
-                    ➕
-                </div>
-                <span class="action-label">New Entry</span>
-            </button>
-
-            <button class="action-card calendar" @onclick="NavigateToCalendar">
-                <div class="action-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
-                    📅
-                </div>
-                <span class="action-label">Calendar</span>
-            </button>
-
-            <button class="action-card analytics" @onclick="NavigateToAnalytics">
-                <div class="action-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                    📊
-                </div>
-                <span class="action-label">Analytics</span>
-            </button>
-
-            <button class="action-card journal" @onclick="ViewAllEntries">
-                <div class="action-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                    📚
-                </div>
-                <span class="action-label">All Entries</span>
-            </button>
-        </div>
-
-        <!-- Enhanced Stats Row with Icons -->
-        <div class="stats-row-enhanced">
-            <div class="stat-card-enhanced streak">
-                <div class="stat-background-icon">🔥</div>
-                <div class="stat-content-enhanced">
-                    <div class="stat-value-enhanced" style="color: #f59e0b;">@currentStreak</div>
-                    <div class="stat-label-enhanced">Current Streak</div>
-                    <div class="stat-suffix">days</div>
-                </div>
-            </div>
-
-            <div class="stat-card-enhanced longest">
-                <div class="stat-background-icon">⭐</div>
-                <div class="stat-content-enhanced">
-                    <div class="stat-value-enhanced" style="color: #8b5cf6;">@longestStreak</div>
-                    <div class="stat-label-enhanced">Longest Streak</div>
-                    <div class="stat-suffix">days</div>
-                </div>
-            </div>
-
-            <div class="stat-card-enhanced missed">
-                <div class="stat-background-icon">📅</div>
-                <div class="stat-content-enhanced">
-                    <div class="stat-value-enhanced" style="color: #ef4444;">@missedDays</div>
-                    <div class="stat-label-enhanced">Missed Days</div>
-                    <div class="stat-suffix">total</div>
-                </div>
-            </div>
-
-            <div class="stat-card-enhanced entries">
-                <div class="stat-background-icon">📝</div>
-                <div class="stat-content-enhanced">
-                    <div class="stat-value-enhanced" style="color: #3b82f6;">@totalEntries</div>
-                    <div class="stat-label-enhanced">Total Entries</div>
-                    <div class="stat-suffix">written</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Motivational Message -->
-        @if (currentStreak > 0)
+        <!-- Today Status -->
+        @if (todayEntry != null)
         {
-            <div class="motivation-card">
-                <span class="motivation-icon">@GetMotivationIcon()</span>
-                <p class="motivation-text">@GetMotivationMessage()</p>
+            <div class="status-banner success">
+                <span class="icon">✅</span>
+                <span>You've journaled today!</span>
+            </div>
+        }
+        else
+        {
+            <div class="status-banner pending">
+                <span class="icon">📝</span>
+                <span>You haven't written today</span>
+                <button class="btn-inline" @onclick="CreateNewEntry">Write Now</button>
             </div>
         }
 
-        <!-- Weekly Progress Bar -->
-        @if (entries.Any())
-        {
-            <div class="progress-card">
-                <div class="progress-header">
-                    <h3 class="progress-title">🎯 This Week's Progress</h3>
-                    <span class="progress-count">@weeklyEntries / 7 days</span>
-                </div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill" style="width: @(weeklyEntries * 100.0 / 7)%"></div>
-                </div>
-                <p class="progress-message">
-                    @if (weeklyEntries == 7)
-                    {
-                        <text>Perfect week! You journaled every day! 🎉</text>
-                    }
-                    else if (weeklyEntries >= 5)
-                    {
-                        <text>Great job! Just @(7 - weeklyEntries) more day@(7 - weeklyEntries > 1 ? "s" : "") to complete this week. 💪</text>
-                    }
-                    else
-                    {
-                        <text>Keep going! @weeklyEntries out of 7 days complete.</text>
-                    }
-                </p>
+        <!-- Quick Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-value">@currentStreak</div>
+                <div class="stat-label">Current Streak</div>
             </div>
-        }
 
-        <!-- Enhanced Mood Distribution with Bars -->
-        <div class="mood-distribution-card">
-            <h2 class="section-title-enhanced">📊 Mood Distribution</h2>
-            @if (moodDistribution != null && moodDistribution.Values.Sum() > 0)
-            {
-                var total = moodDistribution.Values.Sum();
-                <div class="mood-bars-container">
-                    @foreach (var mood in moodDistribution.OrderByDescending(m => m.Value))
-                    {
-                        var percentage = total > 0 ? (int)((mood.Value * 100.0) / total) : 0;
-                        var color = mood.Key switch
-                        {
-                            "Positive" => "#10b981",
-                            "Neutral" => "#6b7280",
-                            "Negative" => "#ef4444",
-                            _ => "#6b7280"
-                        };
-                        var emoji = mood.Key switch
-                        {
-                            "Positive" => "😊",
-                            "Neutral" => "😐",
-                            "Negative" => "😢",
-                            _ => "😐"
-                        };
+            <div class="stat-box">
+                <div class="stat-value">@longestStreak</div>
+                <div class="stat-label">Longest Streak</div>
+            </div>
 
-                        <div class="mood-bar-item">
-                            <div class="mood-bar-header">
-                                <span class="mood-bar-label">@emoji @mood.Key</span>
-                                <span class="mood-bar-percentage">@percentage%</span>
-                            </div>
-                            <div class="mood-bar-track">
-                                <div class="mood-bar-progress" style="width: @percentage%; background-color: @color;"></div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <p class="no-data">No mood data available yet</p>
-            }
+            <div class="stat-box">
+                <div class="stat-value">@totalEntries</div>
+                <div class="stat-label">Total Entries</div>
+            </div>
+
+            <div class="stat-box">
+                <div class="stat-value">@missedDays</div>
+                <div class="stat-label">Missed Days</div>
+            </div>
         </div>
 
-        <!-- Two Column Layout for Tags and Additional Stats -->
-        <div class="analytics-row">
-            <!-- Top Tags -->
-            <div class="analytics-card">
-                <h2 class="section-title-enhanced">🏷️ Most Used Tags</h2>
-                <div class="tag-analytics">
-                    @if (topTags != null && topTags.Any())
+        <!-- Quick Actions -->
+        <div class="actions-row">
+            <button class="action-btn primary" @onclick="CreateNewEntry">
+                <span class="btn-icon">➕</span>
+                New Entry
+            </button>
+            <button class="action-btn" @onclick="ViewAllEntries">
+                <span class="btn-icon">📚</span>
+                View Journal
+            </button>
+            <button class="action-btn" @onclick="NavigateToCalendar">
+                <span class="btn-icon">📅</span>
+                Calendar
+            </button>
+            <button class="action-btn" @onclick="NavigateToAnalytics">
+                <span class="btn-icon">📊</span>
+                Analytics
+            </button>
+        </div>
+
+        <!-- Two Column Layout -->
+        <div class="content-grid">
+            <!-- Left Column -->
+            <div class="content-column">
+                <!-- Mood Overview -->
+                <div class="card">
+                    <h3 class="card-title">Mood Overview</h3>
+                    @if (moodDistribution != null && moodDistribution.Values.Sum() > 0)
                     {
-                        @foreach (var tag in topTags)
+                        var total = moodDistribution.Values.Sum();
+                        @foreach (var mood in moodDistribution.OrderByDescending(m => m.Value))
                         {
-                            <div class="tag-stat-item-enhanced">
-                                <span class="tag-stat-badge" style="background-color: @TagService.GetTagColor(tag.Key)">
-                                    @tag.Key
-                                </span>
-                                <span class="tag-stat-count">@tag.Value entries</span>
+                            var percentage = total > 0 ? (int)((mood.Value * 100.0) / total) : 0;
+                            var color = mood.Key switch
+                            {
+                                "Positive" => "#10b981",
+                                "Neutral" => "#6b7280",
+                                "Negative" => "#ef4444",
+                                _ => "#6b7280"
+                            };
+
+                            <div class="mood-item">
+                                <div class="mood-label">
+                                    <span>@mood.Key</span>
+                                    <span class="mood-count">@mood.Value (@percentage%)</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill"
+                                         style="width: @percentage%; background-color: @color;"></div>
+                                </div>
                             </div>
                         }
                     }
                     else
                     {
-                        <p class="no-data">No tags used yet</p>
+                        <p class="empty-text">No mood data yet</p>
+                    }
+                </div>
+
+                <!-- Top Tags -->
+                <div class="card">
+                    <h3 class="card-title">Top Tags</h3>
+                    @if (topTags != null && topTags.Any())
+                    {
+                        <div class="tags-list">
+                            @foreach (var tag in topTags)
+                            {
+                                <div class="tag-item">
+                                    <span class="tag-name">@tag.Key</span>
+                                    <span class="tag-count">@tag.Value</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="empty-text">No tags used yet</p>
                     }
                 </div>
             </div>
 
-            <!-- Additional Quick Stats -->
-            <div class="analytics-card">
-                <h2 class="section-title-enhanced">📈 Writing Stats</h2>
-                <div class="writing-stats">
-                    <div class="writing-stat-item">
-                        <span class="writing-stat-icon">✍️</span>
-                        <div>
-                            <div class="writing-stat-value">@averageWords</div>
-                            <div class="writing-stat-label">Avg Words/Entry</div>
-                        </div>
+            <!-- Right Column -->
+            <div class="content-column">
+                <!-- Today's Entry -->
+                @if (todayEntry != null)
+                {
+                    <div class="card">
+                        <h3 class="card-title">Today's Entry</h3>
+                        <h4 class="entry-title">@todayEntry.Title</h4>
+
+                        @if (!string.IsNullOrWhiteSpace(todayEntry.PrimaryMood))
+                        {
+                            <div class="mood-badge-container">
+                                <span class="mood-badge"
+                                      style="background-color: @MoodService.GetMoodColor(todayEntry.PrimaryMood)">
+                                    @MoodService.GetMoodEmoji(todayEntry.PrimaryMood) @todayEntry.PrimaryMood
+                                </span>
+                            </div>
+                        }
+
+                        <p class="entry-preview">
+                            @{
+                                var preview = GetContentPreview(todayEntry.Content, 150);
+                            }
+                            @preview
+                        </p>
+
+                        <button class="btn-link" @onclick="@(() => ViewEntry(todayEntry.Id))">
+                            Read more →
+                        </button>
                     </div>
-                    <div class="writing-stat-item">
-                        <span class="writing-stat-icon">📅</span>
-                        <div>
-                            <div class="writing-stat-value">@daysSinceFirst</div>
-                            <div class="writing-stat-label">Days of Journaling</div>
-                        </div>
+                }
+                else
+                {
+                    <div class="card empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h3>No entry for today</h3>
+                        <p>Start your day by creating a journal entry</p>
+                        <button class="btn-primary" @onclick="CreateNewEntry">Create Entry</button>
                     </div>
-                    <div class="writing-stat-item">
-                        <span class="writing-stat-icon">😊</span>
-                        <div>
-                            <div class="writing-stat-value">
+                }
+
+                <!-- Quick Stats -->
+                <div class="card">
+                    <h3 class="card-title">Writing Stats</h3>
+                    <div class="stats-list">
+                        <div class="stat-item">
+                            <span class="stat-item-label">Average Words</span>
+                            <span class="stat-item-value">@averageWords</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-item-label">Days Active</span>
+                            <span class="stat-item-value">@daysSinceFirst</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-item-label">This Week</span>
+                            <span class="stat-item-value">@weeklyEntries / 7</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-item-label">Most Frequent Mood</span>
+                            <span class="stat-item-value">
                                 @if (!string.IsNullOrEmpty(mostFrequentMood))
                                 {
-                                    @MoodService.GetMoodEmoji(mostFrequentMood)
+                                    <span class="mood-emoji-inline">@MoodService.GetMoodEmoji(mostFrequentMood)</span>
+                                    <span>@mostFrequentMood</span>
                                 }
                                 else
                                 {
                                     <text>-</text>
                                 }
-                            </div>
-                            <div class="writing-stat-label">Most Frequent Mood</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Today's Entry Section -->
-        <div class="today-section">
-            <h2 class="section-title-enhanced">📝 Today's Entry</h2>
-
-            @if (todayEntry != null)
-            {
-                <div class="today-entry-card">
-                    <div class="entry-header">
-                        <h3>@todayEntry.Title</h3>
-                        <span class="entry-date">@todayEntry.Date.ToString("MMMM dd, yyyy")</span>
-                    </div>
-
-                    @if (!string.IsNullOrWhiteSpace(todayEntry.PrimaryMood))
-                    {
-                        <div class="entry-mood">
-                            <span class="mood-badge" style="background-color: @MoodService.GetMoodColor(todayEntry.PrimaryMood)">
-                                @MoodService.GetMoodEmoji(todayEntry.PrimaryMood) @todayEntry.PrimaryMood
                             </span>
                         </div>
-                    }
-
-                    <div class="entry-preview">
-                        @{
-                            var preview = todayEntry.Content.Length > 200
-                            ? todayEntry.Content.Substring(0, 200) + "..."
-                            : todayEntry.Content;
-                        }
-                        @preview
-                    </div>
-
-                    <div class="entry-actions">
-                        <button class="btn btn-primary" @onclick="@(() => ViewEntry(todayEntry.Id))">
-                            View Full Entry
-                        </button>
-                        <button class="btn btn-secondary" @onclick="@(() => EditEntry(todayEntry.Id))">
-                            Edit Entry
-                        </button>
                     </div>
                 </div>
-            }
-            else
-            {
-                <div class="no-entry-card">
-                    <div class="no-entry-icon">📝</div>
-                    <h3>No entry for today yet</h3>
-                    <p>Start your day by creating a journal entry</p>
-                    <button class="btn btn-create" @onclick="CreateNewEntry">
-                        Create Today's Entry
-                    </button>
-                </div>
-            }
-        </div>
 
-        <!-- Recent Entries Section -->
-        @if (recentEntries.Any())
-        {
-            <div class="recent-section">
-                <div class="section-header">
-                    <h2 class="section-title-enhanced">📚 Recent Entries</h2>
-                    <button class="btn-view-all" @onclick="ViewAllEntries">
-                        View All →
-                    </button>
-                </div>
-
-                <div class="recent-entries-list">
-                    @foreach (var entry in recentEntries.Take(5))
-                    {
-                        <div class="recent-entry-item" @onclick="@(() => ViewEntry(entry.Id))">
-                            <div class="recent-entry-content">
-                                <h4>@entry.Title</h4>
-                                <span class="recent-entry-date">@entry.Date.ToString("MMM dd, yyyy")</span>
-                            </div>
-
-                            @if (!string.IsNullOrWhiteSpace(entry.PrimaryMood))
+                <!-- Recent Entries -->
+                @if (recentEntries.Any())
+                {
+                    <div class="card">
+                        <h3 class="card-title">Recent Entries</h3>
+                        <div class="recent-list">
+                            @foreach (var entry in recentEntries.Take(5))
                             {
-                                <div class="recent-entry-mood">
-                                    <span class="mood-emoji">@MoodService.GetMoodEmoji(entry.PrimaryMood)</span>
+                                <div class="recent-item" @onclick="@(() => ViewEntry(entry.Id))">
+                                    <div class="recent-content">
+                                        <div class="recent-title">@entry.Title</div>
+                                        <div class="recent-date">@entry.Date.ToString("MMM dd, yyyy")</div>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(entry.PrimaryMood))
+                                    {
+                                        <div class="recent-mood">
+                                            @MoodService.GetMoodEmoji(entry.PrimaryMood)
+                                        </div>
+                                    }
                                 </div>
                             }
                         </div>
-                    }
-                </div>
+                    </div>
+                }
             </div>
-        }
+        </div>
     }
 </div>
 
@@ -376,28 +286,6 @@
         return "Good evening";
     }
 
-    private string GetMotivationIcon()
-    {
-        if (currentStreak >= 30) return "💎";
-        if (currentStreak >= 14) return "🔥";
-        if (currentStreak >= 7) return "⭐";
-        return "💪";
-    }
-
-    private string GetMotivationMessage()
-    {
-        if (currentStreak >= 30)
-            return $"Incredible! A {currentStreak}-day streak! You're a journaling champion! 💎";
-        if (currentStreak >= 14)
-            return $"Amazing! You're on a {currentStreak}-day streak! Keep the fire burning! 🔥";
-        if (currentStreak >= 7)
-            return $"Great job! You've maintained a {currentStreak}-day streak! ⭐";
-        if (currentStreak >= 3)
-            return $"Nice! You're building momentum with a {currentStreak}-day streak! 💪";
-
-        return $"You're on a {currentStreak}-day streak! Keep it going! 💪";
-    }
-
     private async Task LoadDashboard()
     {
         isLoading = true;
@@ -406,14 +294,9 @@
 
         try
         {
-            // Load all entries
             entries = await JournalService.GetAllEntriesAsync();
             totalEntries = entries.Count;
-
-            // Get today's entry
             todayEntry = await JournalService.GetTodayEntryAsync();
-
-            // Get recent entries (exclude today if it exists)
             recentEntries = entries
                 .Where(e => e.Date.Date != DateTime.Today)
                 .OrderByDescending(e => e.Date)
@@ -449,34 +332,21 @@
     {
         try
         {
-            // Calculate streaks
             CalculateStreaks();
-
-            // Calculate word statistics
             var totalWords = entries.Sum(e => CountWords(e.Content));
             averageWords = entries.Count > 0 ? totalWords / entries.Count : 0;
-
-            // Calculate days since first entry
             var firstEntry = entries.OrderBy(e => e.Date).FirstOrDefault();
             daysSinceFirst = firstEntry != null ? (DateTime.Today - firstEntry.Date.Date).Days + 1 : 0;
-
-            // Get mood distribution
             moodDistribution = GetMoodDistribution();
-
-            // Get most frequent mood
             mostFrequentMood = GetMostFrequentMood();
-
-            // Get top tags
             topTags = GetTopTags();
 
-            // Calculate missed days
             if (firstEntry != null)
             {
                 var totalDays = (DateTime.Today - firstEntry.Date.Date).Days + 1;
                 missedDays = totalDays - entries.Count;
             }
 
-            // Calculate weekly entries
             var weekStart = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek);
             weeklyEntries = entries.Count(e => e.Date.Date >= weekStart && e.Date.Date <= DateTime.Today);
         }
@@ -489,13 +359,10 @@
     private void CalculateStreaks()
     {
         var sortedDates = entries.Select(e => e.Date.Date).Distinct().OrderByDescending(d => d).ToList();
-
         if (!sortedDates.Any()) return;
 
-        // Current streak
         currentStreak = 0;
         var checkDate = DateTime.Today;
-
         foreach (var date in sortedDates)
         {
             if (date == checkDate || date == checkDate.AddDays(-1))
@@ -503,16 +370,11 @@
                 currentStreak++;
                 checkDate = date.AddDays(-1);
             }
-            else
-            {
-                break;
-            }
+            else break;
         }
 
-        // Longest streak
         longestStreak = 0;
         int tempStreak = 1;
-
         var allDates = sortedDates.OrderBy(d => d).ToList();
         for (int i = 1; i < allDates.Count; i++)
         {
@@ -552,21 +414,18 @@
     private string? GetMostFrequentMood()
     {
         if (!entries.Any()) return null;
-
         var moodCounts = entries
             .Where(e => !string.IsNullOrWhiteSpace(e.PrimaryMood))
             .GroupBy(e => e.PrimaryMood)
             .Select(g => new { Mood = g.Key, Count = g.Count() })
             .OrderByDescending(x => x.Count)
             .FirstOrDefault();
-
         return moodCounts?.Mood;
     }
 
     private Dictionary<string, int> GetTopTags()
     {
         var tagDict = new Dictionary<string, int>();
-
         foreach (var entry in entries)
         {
             var tags = TagService.ParseTags(entry.Tags);
@@ -578,7 +437,6 @@
                     tagDict[tag] = 1;
             }
         }
-
         return tagDict.OrderByDescending(kvp => kvp.Value).Take(5).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
     }
 
@@ -586,37 +444,26 @@
     {
         if (string.IsNullOrWhiteSpace(text))
             return 0;
-
-        return text.Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
+        var plainText = System.Text.RegularExpressions.Regex.Replace(text, "<.*?>", " ");
+        return plainText.Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
     }
 
-    private void CreateNewEntry()
+    private string GetContentPreview(string htmlContent, int maxLength)
     {
-        Navigation.NavigateTo("/newentry");
+        if (string.IsNullOrWhiteSpace(htmlContent))
+            return "No content available...";
+        var plainText = System.Text.RegularExpressions.Regex.Replace(htmlContent, "<.*?>", " ");
+        plainText = System.Text.RegularExpressions.Regex.Replace(plainText, @"\s+", " ").Trim();
+        if (string.IsNullOrWhiteSpace(plainText))
+            return "No content available...";
+        if (plainText.Length > maxLength)
+            return plainText.Substring(0, maxLength) + "...";
+        return plainText;
     }
 
-    private void ViewEntry(int entryId)
-    {
-        Navigation.NavigateTo($"/viewentry/{entryId}");
-    }
-
-    private void EditEntry(int entryId)
-    {
-        Navigation.NavigateTo($"/editentry/{entryId}");
-    }
-
-    private void ViewAllEntries()
-    {
-        Navigation.NavigateTo("/journal");
-    }
-
-    private void NavigateToCalendar()
-    {
-        Navigation.NavigateTo("/calendar");
-    }
-
-    private void NavigateToAnalytics()
-    {
-        Navigation.NavigateTo("/analytics");
-    }
+    private void CreateNewEntry() => Navigation.NavigateTo("/newentry");
+    private void ViewEntry(int entryId) => Navigation.NavigateTo($"/viewentry/{entryId}");
+    private void ViewAllEntries() => Navigation.NavigateTo("/journal");
+    private void NavigateToCalendar() => Navigation.NavigateTo("/calendar");
+    private void NavigateToAnalytics() => Navigation.NavigateTo("/analytics");
 }
