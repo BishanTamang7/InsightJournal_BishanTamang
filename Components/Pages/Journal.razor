@@ -14,7 +14,7 @@
         <div class="journal-controls">
             <input type="text"
                    class="search-input"
-                   placeholder="Search entries by title..."
+                   placeholder="Search entries by title or content..."
                    @bind="searchText"
                    @bind:event="oninput"
                    @bind:after="FilterEntries" />
@@ -90,14 +90,14 @@
                             <span class="meta-item">
                                 <span class="meta-label">Date:</span> @entry.Date.ToString("yyyy-MM-dd")
                             </span>
-                            
+
                             @if (!string.IsNullOrWhiteSpace(entry.PrimaryMood))
                             {
                                 <span class="meta-separator">|</span>
                                 <span class="meta-item">
-                                    <span class="meta-label">Mood:</span> 
+                                    <span class="meta-label">Mood:</span>
                                     <span class="meta-mood" style="color: @MoodService.GetMoodColor(entry.PrimaryMood)">
-                                        @entry.MoodCategory
+                                        @MoodService.GetMoodEmoji(entry.PrimaryMood) @entry.MoodCategory
                                     </span>
                                 </span>
                             }
@@ -106,7 +106,7 @@
                             {
                                 <span class="meta-separator">|</span>
                                 <span class="meta-item">
-                                    <span class="meta-label">Tags:</span> 
+                                    <span class="meta-label">Tags:</span>
                                     <span class="meta-tags">
                                         @foreach (var tag in TagService.ParseTags(entry.Tags).Take(3))
                                         {
@@ -124,17 +124,14 @@
                                 </span>
                             }
                         </div>
+
+                        <!-- Content Preview -->
+                        <div class="entry-content-preview">
+                            @GetContentPreview(entry.Content, 150)
+                        </div>
                     </div>
-                    <div class="entry-card-actions">
-                        <button class="entry-card-btn btn-view" @onclick:stopPropagation @onclick="() => ViewEntry(entry)">
-                            View
-                        </button>
-                        <button class="entry-card-btn btn-edit" @onclick:stopPropagation @onclick="() => EditEntry(entry)">
-                            Edit
-                        </button>
-                        <button class="entry-card-btn btn-delete" @onclick:stopPropagation @onclick="() => ShowDeleteConfirm(entry)">
-                            Delete
-                        </button>
+                    <div class="entry-card-arrow">
+                        →
                     </div>
                 </div>
             }
@@ -167,25 +164,6 @@
             </div>
         }
     }
-
-    @if (showDeleteModal)
-    {
-        <div class="modal-overlay" @onclick="CancelDelete">
-            <div class="modal-content" @onclick:stopPropagation>
-                <h3>Delete Entry</h3>
-                <p>Are you sure you want to delete "<strong>@entryToDelete?.Title</strong>"?</p>
-                <p class="warning-text">This action cannot be undone.</p>
-                <div class="modal-buttons">
-                    <button class="btn btn-danger" @onclick="ConfirmDelete" disabled="@isDeleting">
-                        @(isDeleting ? "Deleting..." : "Yes, Delete")
-                    </button>
-                    <button class="btn btn-secondary" @onclick="CancelDelete" disabled="@isDeleting">
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    }
 </div>
 
 @code {
@@ -194,9 +172,6 @@
     private bool isLoading = true;
     private bool hasError = false;
     private string errorMessage = string.Empty;
-    private bool showDeleteModal = false;
-    private bool isDeleting = false;
-    private JournalEntry? entryToDelete;
     private string searchText = "";
     private string dateFilter = "all";
     private string tagFilter = "";
@@ -229,7 +204,7 @@
             );
 
             filteredEntries = ApplyMoodFilter(entries);
-            
+
             Logger.LogInformation("Successfully loaded {Count} entries", entries.Count);
         }
         catch (ApplicationException ex)
@@ -265,8 +240,8 @@
         }
 
         return entriesToFilter
-            .Where(e => e.PrimaryMood == moodFilter || 
-                       e.SecondaryMood1 == moodFilter || 
+            .Where(e => e.PrimaryMood == moodFilter ||
+                       e.SecondaryMood1 == moodFilter ||
                        e.SecondaryMood2 == moodFilter)
             .ToList();
     }
@@ -304,6 +279,25 @@
             .ToList();
     }
 
+    private string GetContentPreview(string htmlContent, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(htmlContent))
+            return "No content available...";
+
+        // Strip HTML tags
+        var plainText = System.Text.RegularExpressions.Regex.Replace(htmlContent, "<.*?>", " ");
+        // Remove extra whitespace
+        plainText = System.Text.RegularExpressions.Regex.Replace(plainText, @"\s+", " ").Trim();
+
+        if (string.IsNullOrWhiteSpace(plainText))
+            return "No content available...";
+
+        if (plainText.Length > maxLength)
+            return plainText.Substring(0, maxLength) + "...";
+
+        return plainText;
+    }
+
     private void GoToNewEntry()
     {
         Navigation.NavigateTo("/newentry");
@@ -312,66 +306,6 @@
     private void ViewEntry(JournalEntry entry)
     {
         Navigation.NavigateTo($"/viewentry/{entry.Id}");
-    }
-
-    private void EditEntry(JournalEntry entry)
-    {
-        Navigation.NavigateTo($"/editentry/{entry.Id}");
-    }
-
-    private void ShowDeleteConfirm(JournalEntry entry)
-    {
-        entryToDelete = entry;
-        showDeleteModal = true;
-    }
-
-    private void CancelDelete()
-    {
-        if (!isDeleting)
-        {
-            showDeleteModal = false;
-            entryToDelete = null;
-        }
-    }
-
-    private async Task ConfirmDelete()
-    {
-        if (entryToDelete == null) return;
-
-        isDeleting = true;
-
-        try
-        {
-            await JournalService.DeleteEntryAsync(entryToDelete.Id);
-            Logger.LogInformation("Successfully deleted entry {EntryId}", entryToDelete.Id);
-
-            showDeleteModal = false;
-            entryToDelete = null;
-            await LoadEntries();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            errorMessage = "Entry not found. It may have already been deleted.";
-            hasError = true;
-            Logger.LogWarning(ex, "Attempted to delete non-existent entry");
-        }
-        catch (ApplicationException ex)
-        {
-            errorMessage = ex.Message;
-            hasError = true;
-            Logger.LogError(ex, "Error deleting entry");
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Failed to delete entry. Please try again.";
-            hasError = true;
-            Logger.LogError(ex, "Unexpected error deleting entry");
-        }
-        finally
-        {
-            isDeleting = false;
-            showDeleteModal = false;
-        }
     }
 
     private void PreviousPage()

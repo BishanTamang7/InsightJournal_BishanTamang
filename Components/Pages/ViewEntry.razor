@@ -27,8 +27,12 @@
     else
     {
         <div class="entry-header">
-            <h2>@entry.Title</h2>
-            <p class="date-display">@entry.Date.ToString("dddd, MMMM dd, yyyy")</p>
+            <div class="entry-header-top">
+                <div>
+                    <h2>@entry.Title</h2>
+                    <p class="date-display">@entry.Date.ToString("dddd, MMMM dd, yyyy")</p>
+                </div>
+            </div>
         </div>
 
         <div class="view-content">
@@ -39,7 +43,7 @@
                     <div class="mood-display-section">
                         <div class="mood-display-label">Mood</div>
                         <div class="mood-display-badges">
-                            <div class="mood-display-badge primary" 
+                            <div class="mood-display-badge primary"
                                  style="background-color: @MoodService.GetMoodColor(entry.PrimaryMood)">
                                 <span class="mood-emoji">@MoodService.GetMoodEmoji(entry.PrimaryMood)</span>
                                 <span class="mood-name">@entry.PrimaryMood</span>
@@ -48,7 +52,7 @@
 
                             @if (!string.IsNullOrWhiteSpace(entry.SecondaryMood1))
                             {
-                                <div class="mood-display-badge secondary" 
+                                <div class="mood-display-badge secondary"
                                      style="background-color: @MoodService.GetMoodColor(entry.SecondaryMood1)">
                                     <span class="mood-emoji">@MoodService.GetMoodEmoji(entry.SecondaryMood1)</span>
                                     <span class="mood-name">@entry.SecondaryMood1</span>
@@ -57,16 +61,16 @@
 
                             @if (!string.IsNullOrWhiteSpace(entry.SecondaryMood2))
                             {
-                                <div class="mood-display-badge secondary" 
+                                <div class="mood-display-badge secondary"
                                      style="background-color: @MoodService.GetMoodColor(entry.SecondaryMood2)">
                                     <span class="mood-emoji">@MoodService.GetMoodEmoji(entry.SecondaryMood2)</span>
                                     <span class="mood-name">@entry.SecondaryMood2</span>
                                 </div>
                             }
                         </div>
-                        <div class="mood-category-indicator" 
-                             style="background-color: @MoodService.GetMoodBackgroundColor(entry.PrimaryMood); 
-                                    border-left-color: @MoodService.GetMoodColor(entry.PrimaryMood)">
+                        <div class="mood-category-indicator"
+                             style="background-color: @MoodService.GetMoodBackgroundColor(entry.PrimaryMood);
+                                            border-left-color: @MoodService.GetMoodColor(entry.PrimaryMood)">
                             @MoodService.GetCategoryEmoji(entry.MoodCategory) @entry.MoodCategory Mood
                         </div>
                     </div>
@@ -103,10 +107,35 @@
                 <button class="btn btn-secondary" @onclick="BackToJournal">
                     ← Back to Journal
                 </button>
+                <button class="btn btn-primary" @onclick="EditEntry">
+                    ✏️ Edit Entry
+                </button>
+                <button class="btn btn-danger" @onclick="ShowDeleteConfirm">
+                    🗑️ Delete Entry
+                </button>
             </div>
         </div>
     }
 </div>
+
+@if (showDeleteModal)
+{
+    <div class="modal-overlay" @onclick="CancelDelete">
+        <div class="modal-content" @onclick:stopPropagation>
+            <h3>Delete Entry</h3>
+            <p>Are you sure you want to delete "<strong>@entry?.Title</strong>"?</p>
+            <p class="warning-text">This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" @onclick="ConfirmDelete" disabled="@isDeleting">
+                    @(isDeleting ? "Deleting..." : "Yes, Delete")
+                </button>
+                <button class="btn btn-secondary" @onclick="CancelDelete" disabled="@isDeleting">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     [Parameter]
@@ -114,6 +143,8 @@
 
     private JournalEntry? entry;
     private bool isLoading = true;
+    private bool showDeleteModal = false;
+    private bool isDeleting = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -133,5 +164,45 @@
     private void BackToJournal()
     {
         Navigation.NavigateTo("/journal");
+    }
+
+    private void EditEntry()
+    {
+        if (entry != null)
+        {
+            Navigation.NavigateTo($"/editentry/{entry.Id}");
+        }
+    }
+
+    private void ShowDeleteConfirm()
+    {
+        showDeleteModal = true;
+    }
+
+    private void CancelDelete()
+    {
+        if (!isDeleting)
+        {
+            showDeleteModal = false;
+        }
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (entry == null) return;
+
+        isDeleting = true;
+
+        try
+        {
+            await JournalService.DeleteEntryAsync(entry.Id);
+            Navigation.NavigateTo("/journal");
+        }
+        catch (Exception)
+        {
+            // Handle error - could show a toast/alert
+            isDeleting = false;
+            showDeleteModal = false;
+        }
     }
 }
