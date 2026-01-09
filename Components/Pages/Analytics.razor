@@ -12,6 +12,18 @@
         <p class="analytics-subtitle">Insights into your journaling journey</p>
     </div>
 
+    <!-- Date Range Filter -->
+    <div class="date-filter-section">
+        <label class="filter-label">Date Range:</label>
+        <select class="filter-dropdown" @bind="dateRangeFilter" @bind:after="ApplyDateFilter">
+            <option value="all">All Time</option>
+            <option value="week">Last 7 Days</option>
+            <option value="month">Last 30 Days</option>
+            <option value="3months">Last 3 Months</option>
+            <option value="year">Last Year</option>
+        </select>
+    </div>
+
     @if (isLoading)
     {
         <div class="loading-state">
@@ -25,7 +37,7 @@
             <button class="btn btn-secondary" @onclick="LoadAnalytics">Retry</button>
         </div>
     }
-    else if (entries.Count == 0)
+    else if (filteredEntries.Count == 0)
     {
         <div class="empty-state">
             <h3>No data available</h3>
@@ -39,7 +51,7 @@
             <div class="stat-card">
                 <div class="stat-icon">📝</div>
                 <div class="stat-content">
-                    <h3>@entries.Count</h3>
+                    <h3>@filteredEntries.Count</h3>
                     <p>Total Entries</p>
                 </div>
             </div>
@@ -61,171 +73,179 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon">📊</div>
+                <div class="stat-icon">😊</div>
                 <div class="stat-content">
-                    <h3>@totalWords</h3>
-                    <p>Total Words</p>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">✍️</div>
-                <div class="stat-content">
-                    <h3>@averageWords</h3>
-                    <p>Avg Words/Entry</p>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">📅</div>
-                <div class="stat-content">
-                    <h3>@daysSinceFirst</h3>
-                    <p>Days of Journaling</p>
+                    <h3>@(string.IsNullOrEmpty(mostFrequentMood) ? "-" : MoodService.GetMoodEmoji(mostFrequentMood))</h3>
+                    <p>Most Frequent Mood</p>
+                    @if (!string.IsNullOrEmpty(mostFrequentMood))
+                    {
+                        <span class="stat-detail">@mostFrequentMood</span>
+                    }
                 </div>
             </div>
         </div>
 
-        <!-- Charts Section -->
-        <div class="charts-section">
-            <!-- Entries by Month -->
-            <div class="chart-card">
-                <h2 class="chart-title">Entries This Year</h2>
-                <div class="chart-container">
-                    <div class="bar-chart">
-                        @foreach (var month in monthlyData)
+        <!-- Mood Distribution -->
+        <div class="chart-card">
+            <h2 class="chart-title">Mood Distribution</h2>
+            <div class="mood-distribution-chart">
+                @if (moodDistribution != null && moodDistribution.Values.Sum() > 0)
+                {
+                    var total = moodDistribution.Values.Sum();
+                    <div class="mood-bars">
+                        @foreach (var mood in moodDistribution.OrderByDescending(m => m.Value))
                         {
-                            var maxEntries = monthlyData.Values.Max();
-                            var heightPercent = maxEntries > 0 ? (month.Value * 100.0 / maxEntries) : 0;
+                            var percentage = total > 0 ? (int)((mood.Value * 100.0) / total) : 0;
+                            var color = mood.Key switch
+                            {
+                                "Positive" => "#10b981",
+                                "Neutral" => "#6b7280",
+                                "Negative" => "#ef4444",
+                                _ => "#6b7280"
+                            };
+                            var emoji = mood.Key switch
+                            {
+                                "Positive" => "😊",
+                                "Neutral" => "😐",
+                                "Negative" => "😢",
+                                _ => "😐"
+                            };
 
-                            <div class="bar-item">
-                                <div class="bar-value">@month.Value</div>
-                                <div class="bar" style="height: @(heightPercent)%"></div>
-                                <div class="bar-label">@month.Key</div>
+                            <div class="mood-bar-item">
+                                <div class="mood-bar-header">
+                                    <span class="mood-bar-label">@emoji @mood.Key</span>
+                                    <span class="mood-bar-count">@mood.Value entries (@percentage%)</span>
+                                </div>
+                                <div class="mood-bar-track">
+                                    <div class="mood-bar-fill" style="width: @percentage%; background-color: @color;"></div>
+                                </div>
                             </div>
                         }
                     </div>
-                </div>
-            </div>
-
-            <!-- Most Used Tags -->
-            <div class="chart-card">
-                <h2 class="chart-title">Most Used Tags</h2>
-                <div class="tags-chart">
-                    @if (tagCounts.Any())
-                    {
-                        @foreach (var tag in tagCounts.Take(10))
-                        {
-                            var widthPercent = tagCounts.Values.Max() > 0
-                            ? (tag.Value * 100.0 / tagCounts.Values.Max())
-                            : 0;
-
-                            <div class="tag-bar-item">
-                                <div class="tag-bar-label" style="color: @TagService.GetTagColor(tag.Key)">
-                                    @tag.Key
-                                </div>
-                                <div class="tag-bar-container">
-                                    <div class="tag-bar"
-                                         style="width: @(widthPercent)%; background-color: @TagService.GetTagColor(tag.Key)">
-                                    </div>
-                                    <span class="tag-bar-count">@tag.Value</span>
-                                </div>
-                            </div>
-                        }
-                    }
-                    else
-                    {
-                        <p class="no-data">No tags used yet</p>
-                    }
-                </div>
+                }
+                else
+                {
+                    <p class="no-data">No mood data available</p>
+                }
             </div>
         </div>
 
-        <!-- Activity Heatmap -->
+        <!-- Most Used Tags -->
         <div class="chart-card">
-            <h2 class="chart-title">Writing Activity (Last 12 Weeks)</h2>
-            <div class="heatmap-container">
-                <div class="heatmap-grid">
-                    @foreach (var week in heatmapData)
+            <h2 class="chart-title">Most Used Tags</h2>
+            <div class="tags-chart">
+                @if (tagCounts.Any())
+                {
+                    var totalTagUsage = tagCounts.Values.Sum();
+                    @foreach (var tag in tagCounts.Take(10))
                     {
-                        <div class="heatmap-column">
-                            @foreach (var day in week)
-                            {
-                                var intensity = GetHeatmapIntensity(day.Count);
-                                <div class="heatmap-cell @intensity"
-                                     title="@day.Date.ToString("MMM dd"): @day.Count entries">
+                        var widthPercent = tagCounts.Values.Max() > 0
+                        ? (tag.Value * 100.0 / tagCounts.Values.Max())
+                        : 0;
+                        var percentage = totalTagUsage > 0 ? (int)((tag.Value * 100.0) / totalTagUsage) : 0;
+
+                        <div class="tag-bar-item">
+                            <div class="tag-bar-label" style="color: @TagService.GetTagColor(tag.Key)">
+                                @tag.Key
+                            </div>
+                            <div class="tag-bar-container">
+                                <div class="tag-bar"
+                                     style="width: @(widthPercent)%; background-color: @TagService.GetTagColor(tag.Key)">
                                 </div>
+                                <span class="tag-bar-count">@tag.Value (@percentage%)</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="no-data">No tags used yet</p>
+                }
+            </div>
+        </div>
+
+        <!-- Word Count Trends -->
+        <div class="chart-card">
+            <h2 class="chart-title">Word Count Trends Over Time</h2>
+            <div class="word-trends-chart">
+                @if (wordTrendData.Any())
+                {
+                    var maxWords = wordTrendData.Max(w => w.Words);
+                    <div class="line-chart">
+                        <div class="chart-y-axis">
+                            <span>@maxWords</span>
+                            <span>@(maxWords / 2)</span>
+                            <span>0</span>
+                        </div>
+                        <div class="chart-area">
+                            <svg viewBox="0 0 1000 300" preserveAspectRatio="none">
+                                <!-- Grid lines -->
+                                <line x1="0" y1="75" x2="1000" y2="75" stroke="var(--border-color)" stroke-width="1" opacity="0.3" />
+                                <line x1="0" y1="150" x2="1000" y2="150" stroke="var(--border-color)" stroke-width="1" opacity="0.3" />
+                                <line x1="0" y1="225" x2="1000" y2="225" stroke="var(--border-color)" stroke-width="1" opacity="0.3" />
+
+                                <!-- Line path -->
+                                <polyline points="@GetLineChartPoints()"
+                                          fill="none"
+                                          stroke="#5b5fc7"
+                                          stroke-width="3"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round" />
+
+                                <!-- Data points -->
+                                @for (int i = 0; i < wordTrendData.Count; i++)
+                                {
+                                    var x = (i * 1000.0 / (wordTrendData.Count - 1));
+                                    var y = maxWords > 0 ? (300 - (wordTrendData[i].Words * 300.0 / maxWords)) : 150;
+                                    <circle cx="@x" cy="@y" r="5" fill="#5b5fc7" />
+                                }
+                            </svg>
+                        </div>
+                        <div class="chart-x-axis">
+                            @foreach (var point in wordTrendData.Where((_, i) => i % Math.Max(1, wordTrendData.Count / 8) == 0))
+                            {
+                                <span>@point.Date.ToString("MMM dd")</span>
                             }
                         </div>
-                    }
-                </div>
-                <div class="heatmap-legend">
-                    <span>Less</span>
-                    <div class="legend-cell intensity-0"></div>
-                    <div class="legend-cell intensity-1"></div>
-                    <div class="legend-cell intensity-2"></div>
-                    <div class="legend-cell intensity-3"></div>
-                    <div class="legend-cell intensity-4"></div>
-                    <span>More</span>
-                </div>
+                    </div>
+                    <div class="chart-stats">
+                        <span>Average: @averageWords words/entry</span>
+                        <span>Total: @totalWords words</span>
+                    </div>
+                }
+                else
+                {
+                    <p class="no-data">No word count data available</p>
+                }
             </div>
         </div>
 
-        <!-- Recent Milestones -->
+        <!-- Missed Days List -->
         <div class="chart-card">
-            <h2 class="chart-title">Milestones</h2>
-            <div class="milestones-list">
-                @if (entries.Count >= 1)
+            <h2 class="chart-title">Missed Days (@missedDaysList.Count days)</h2>
+            <div class="missed-days-section">
+                @if (missedDaysList.Any())
                 {
-                    <div class="milestone-item">
-                        <div class="milestone-icon">🎉</div>
-                        <div class="milestone-content">
-                            <h4>First Entry</h4>
-                            <p>@entries.OrderBy(e => e.Date).First().Date.ToString("MMMM dd, yyyy")</p>
-                        </div>
+                    <div class="missed-days-list">
+                        @foreach (var date in missedDaysList.Take(20))
+                        {
+                            <div class="missed-day-item">
+                                <span class="missed-icon">⚠️</span>
+                                <span class="missed-date">@date.ToString("dddd, MMMM dd, yyyy")</span>
+                            </div>
+                        }
+                        @if (missedDaysList.Count > 20)
+                        {
+                            <div class="missed-day-item more-items">
+                                <span>... and @(missedDaysList.Count - 20) more days</span>
+                            </div>
+                        }
                     </div>
                 }
-
-                @if (entries.Count >= 10)
+                else
                 {
-                    <div class="milestone-item">
-                        <div class="milestone-icon">🏆</div>
-                        <div class="milestone-content">
-                            <h4>10 Entries Milestone</h4>
-                            <p>You're building a great habit!</p>
-                        </div>
-                    </div>
-                }
-
-                @if (entries.Count >= 50)
-                {
-                    <div class="milestone-item">
-                        <div class="milestone-icon">⭐</div>
-                        <div class="milestone-content">
-                            <h4>50 Entries Milestone</h4>
-                            <p>Impressive dedication!</p>
-                        </div>
-                    </div>
-                }
-
-                @if (longestStreak >= 7)
-                {
-                    <div class="milestone-item">
-                        <div class="milestone-icon">🔥</div>
-                        <div class="milestone-content">
-                            <h4>7-Day Streak</h4>
-                            <p>You've journaled for a week straight!</p>
-                        </div>
-                    </div>
-                }
-
-                @if (longestStreak >= 30)
-                {
-                    <div class="milestone-item">
-                        <div class="milestone-icon">💎</div>
-                        <div class="milestone-content">
-                            <h4>30-Day Streak</h4>
-                            <p>A month of consistent journaling!</p>
-                        </div>
+                    <div class="no-missed-days">
+                        <p>🎉 No missed days! You've been consistent since your first entry!</p>
                     </div>
                 }
             </div>
@@ -235,19 +255,22 @@
 
 @code {
     private List<JournalEntry> entries = new();
+    private List<JournalEntry> filteredEntries = new();
     private bool isLoading = true;
     private bool hasError = false;
     private string errorMessage = string.Empty;
+    private string dateRangeFilter = "all";
 
     // Statistics
     private int currentStreak = 0;
     private int longestStreak = 0;
     private int totalWords = 0;
     private int averageWords = 0;
-    private int daysSinceFirst = 0;
-    private Dictionary<string, int> monthlyData = new();
+    private string? mostFrequentMood;
+    private Dictionary<string, int> moodDistribution = new();
     private Dictionary<string, int> tagCounts = new();
-    private List<List<DayData>> heatmapData = new();
+    private List<WordTrendPoint> wordTrendData = new();
+    private List<DateTime> missedDaysList = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -263,12 +286,9 @@
         try
         {
             entries = await JournalService.GetAllEntriesAsync();
-            Logger.LogInformation("Successfully loaded {Count} entries for analytics", entries.Count);
+            ApplyDateFilter();
 
-            if (entries.Any())
-            {
-                CalculateStatistics();
-            }
+            Logger.LogInformation("Successfully loaded {Count} entries for analytics", entries.Count);
         }
         catch (ApplicationException ex)
         {
@@ -288,6 +308,27 @@
         }
     }
 
+    private void ApplyDateFilter()
+    {
+        DateTime? startDate = dateRangeFilter switch
+        {
+            "week" => DateTime.Today.AddDays(-7),
+            "month" => DateTime.Today.AddDays(-30),
+            "3months" => DateTime.Today.AddMonths(-3),
+            "year" => DateTime.Today.AddYears(-1),
+            _ => null
+        };
+
+        filteredEntries = startDate.HasValue
+            ? entries.Where(e => e.Date >= startDate.Value).ToList()
+            : entries;
+
+        if (filteredEntries.Any())
+        {
+            CalculateStatistics();
+        }
+    }
+
     private void CalculateStatistics()
     {
         try
@@ -296,21 +337,23 @@
             CalculateStreaks();
 
             // Calculate word counts
-            totalWords = entries.Sum(e => CountWords(e.Content));
-            averageWords = entries.Count > 0 ? totalWords / entries.Count : 0;
+            totalWords = filteredEntries.Sum(e => CountWords(e.Content));
+            averageWords = filteredEntries.Count > 0 ? totalWords / filteredEntries.Count : 0;
 
-            // Calculate days since first entry
-            var firstEntry = entries.OrderBy(e => e.Date).FirstOrDefault();
-            daysSinceFirst = firstEntry != null ? (DateTime.Today - firstEntry.Date.Date).Days + 1 : 0;
+            // Get mood distribution
+            moodDistribution = GetMoodDistribution();
 
-            // Calculate monthly data
-            monthlyData = CalculateMonthlyData();
+            // Get most frequent mood
+            mostFrequentMood = GetMostFrequentMood();
 
             // Calculate tag usage
             tagCounts = CalculateTagCounts();
 
-            // Generate heatmap data
-            heatmapData = GenerateHeatmapData();
+            // Calculate word trends
+            wordTrendData = CalculateWordTrends();
+
+            // Calculate missed days
+            missedDaysList = CalculateMissedDays();
 
             Logger.LogInformation("Statistics calculated successfully");
         }
@@ -322,7 +365,7 @@
 
     private void CalculateStreaks()
     {
-        var sortedDates = entries.Select(e => e.Date.Date).Distinct().OrderByDescending(d => d).ToList();
+        var sortedDates = filteredEntries.Select(e => e.Date.Date).Distinct().OrderByDescending(d => d).ToList();
 
         if (!sortedDates.Any()) return;
 
@@ -363,26 +406,45 @@
         longestStreak = Math.Max(longestStreak, tempStreak);
     }
 
-    private Dictionary<string, int> CalculateMonthlyData()
+    private Dictionary<string, int> GetMoodDistribution()
     {
-        var currentYear = DateTime.Today.Year;
-        var result = new Dictionary<string, int>();
-
-        for (int i = 1; i <= 12; i++)
+        var distribution = new Dictionary<string, int>
         {
-            var monthName = new DateTime(currentYear, i, 1).ToString("MMM");
-            var count = entries.Count(e => e.Date.Year == currentYear && e.Date.Month == i);
-            result[monthName] = count;
+            { "Positive", 0 },
+            { "Neutral", 0 },
+            { "Negative", 0 }
+        };
+
+        foreach (var entry in filteredEntries)
+        {
+            if (!string.IsNullOrWhiteSpace(entry.MoodCategory) && distribution.ContainsKey(entry.MoodCategory))
+            {
+                distribution[entry.MoodCategory]++;
+            }
         }
 
-        return result;
+        return distribution;
+    }
+
+    private string? GetMostFrequentMood()
+    {
+        if (!filteredEntries.Any()) return null;
+
+        var moodCounts = filteredEntries
+            .Where(e => !string.IsNullOrWhiteSpace(e.PrimaryMood))
+            .GroupBy(e => e.PrimaryMood)
+            .Select(g => new { Mood = g.Key, Count = g.Count() })
+            .OrderByDescending(x => x.Count)
+            .FirstOrDefault();
+
+        return moodCounts?.Mood;
     }
 
     private Dictionary<string, int> CalculateTagCounts()
     {
         var tagDict = new Dictionary<string, int>();
 
-        foreach (var entry in entries)
+        foreach (var entry in filteredEntries)
         {
             var tags = TagService.ParseTags(entry.Tags);
             foreach (var tag in tags)
@@ -397,36 +459,54 @@
         return tagDict.OrderByDescending(kvp => kvp.Value).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
     }
 
-    private List<List<DayData>> GenerateHeatmapData()
+    private List<WordTrendPoint> CalculateWordTrends()
     {
-        var result = new List<List<DayData>>();
-        var startDate = DateTime.Today.AddDays(-84); // 12 weeks
-
-        for (int week = 0; week < 12; week++)
-        {
-            var weekData = new List<DayData>();
-            for (int day = 0; day < 7; day++)
+        return filteredEntries
+            .OrderBy(e => e.Date)
+            .Select(e => new WordTrendPoint
             {
-                var date = startDate.AddDays(week * 7 + day);
-                var count = entries.Count(e => e.Date.Date == date);
-                weekData.Add(new DayData { Date = date, Count = count });
-            }
-            result.Add(weekData);
-        }
-
-        return result;
+                Date = e.Date,
+                Words = CountWords(e.Content)
+            })
+            .ToList();
     }
 
-    private string GetHeatmapIntensity(int count)
+    private List<DateTime> CalculateMissedDays()
     {
-        return count switch
+        var missedDays = new List<DateTime>();
+
+        if (!filteredEntries.Any()) return missedDays;
+
+        var firstEntry = filteredEntries.Min(e => e.Date.Date);
+        var lastDate = DateTime.Today;
+        var entryDates = filteredEntries.Select(e => e.Date.Date).ToHashSet();
+
+        for (var date = firstEntry; date < lastDate; date = date.AddDays(1))
         {
-            0 => "intensity-0",
-            1 => "intensity-1",
-            2 => "intensity-2",
-            3 => "intensity-3",
-            _ => "intensity-4"
-        };
+            if (!entryDates.Contains(date))
+            {
+                missedDays.Add(date);
+            }
+        }
+
+        return missedDays.OrderByDescending(d => d).ToList();
+    }
+
+    private string GetLineChartPoints()
+    {
+        if (!wordTrendData.Any()) return "";
+
+        var maxWords = wordTrendData.Max(w => w.Words);
+        var points = new List<string>();
+
+        for (int i = 0; i < wordTrendData.Count; i++)
+        {
+            var x = i * 1000.0 / (wordTrendData.Count - 1);
+            var y = maxWords > 0 ? (300 - (wordTrendData[i].Words * 300.0 / maxWords)) : 150;
+            points.Add($"{x},{y}");
+        }
+
+        return string.Join(" ", points);
     }
 
     private int CountWords(string text)
@@ -434,12 +514,14 @@
         if (string.IsNullOrWhiteSpace(text))
             return 0;
 
-        return text.Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
+        // Strip HTML tags
+        var plainText = System.Text.RegularExpressions.Regex.Replace(text, "<.*?>", " ");
+        return plainText.Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
     }
 
-    private class DayData
+    private class WordTrendPoint
     {
         public DateTime Date { get; set; }
-        public int Count { get; set; }
+        public int Words { get; set; }
     }
 }
