@@ -19,8 +19,8 @@
             Entry not found!
         </div>
         <div class="button-group">
-            <button class="btn btn-secondary" @onclick="BackToJournal">
-                ← Back to Journal
+            <button class="btn btn-secondary" @onclick="GoBack">
+                ← Go Back
             </button>
         </div>
     }
@@ -70,7 +70,7 @@
                         </div>
                         <div class="mood-category-indicator"
                              style="background-color: @MoodService.GetMoodBackgroundColor(entry.PrimaryMood);
-                                            border-left-color: @MoodService.GetMoodColor(entry.PrimaryMood)">
+                                                    border-left-color: @MoodService.GetMoodColor(entry.PrimaryMood)">
                             @MoodService.GetCategoryEmoji(entry.MoodCategory) @entry.MoodCategory Mood
                         </div>
                     </div>
@@ -104,8 +104,8 @@
             </div>
 
             <div class="button-group">
-                <button class="btn btn-secondary" @onclick="BackToJournal">
-                    ← Back to Journal
+                <button class="btn btn-secondary" @onclick="GoBack">
+                    ← Back to @backDestination
                 </button>
                 <button class="btn btn-primary" @onclick="EditEntry">
                     ✏️ Edit Entry
@@ -141,14 +141,19 @@
     [Parameter]
     public int EntryId { get; set; }
 
+    [SupplyParameterFromQuery(Name = "from")]
+    public string? FromPage { get; set; }
+
     private JournalEntry? entry;
     private bool isLoading = true;
     private bool showDeleteModal = false;
     private bool isDeleting = false;
+    private string backDestination = "Journal";
 
     protected override async Task OnInitializedAsync()
     {
         await LoadEntry();
+        DetermineBackDestination();
     }
 
     private async Task LoadEntry()
@@ -161,9 +166,38 @@
         isLoading = false;
     }
 
-    private void BackToJournal()
+    private void DetermineBackDestination()
     {
-        Navigation.NavigateTo("/journal");
+        // Check the query parameter to determine where we came from
+        if (!string.IsNullOrEmpty(FromPage))
+        {
+            backDestination = FromPage switch
+            {
+                "home" => "Home",
+                "dashboard" => "Home",
+                "journal" => "Journal",
+                "calendar" => "Calendar",
+                _ => "Journal"
+            };
+        }
+        else
+        {
+            // Default to Journal if no parameter provided
+            backDestination = "Journal";
+        }
+    }
+
+    private void GoBack()
+    {
+        var destination = FromPage switch
+        {
+            "home" => "/",
+            "dashboard" => "/",
+            "calendar" => "/calendar",
+            _ => "/journal"
+        };
+
+        Navigation.NavigateTo(destination);
     }
 
     private void EditEntry()
@@ -196,7 +230,9 @@
         try
         {
             await JournalService.DeleteEntryAsync(entry.Id);
-            Navigation.NavigateTo("/journal");
+
+            // After deletion, go back to the original page
+            GoBack();
         }
         catch (Exception)
         {

@@ -236,7 +236,7 @@
 
     private void ViewEntry(JournalEntry entry)
     {
-        Navigation.NavigateTo($"/viewentry/{entry.Id}");
+        Navigation.NavigateTo($"/viewentry/{entry.Id}?from=calendar");
     }
 
     private void CreateEntryForDate()

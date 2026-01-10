@@ -462,7 +462,7 @@
     }
 
     private void CreateNewEntry() => Navigation.NavigateTo("/newentry");
-    private void ViewEntry(int entryId) => Navigation.NavigateTo($"/viewentry/{entryId}");
+    private void ViewEntry(int entryId) => Navigation.NavigateTo($"/viewentry/{entryId}?from=home");
     private void ViewAllEntries() => Navigation.NavigateTo("/journal");
     private void NavigateToCalendar() => Navigation.NavigateTo("/calendar");
     private void NavigateToAnalytics() => Navigation.NavigateTo("/analytics");
