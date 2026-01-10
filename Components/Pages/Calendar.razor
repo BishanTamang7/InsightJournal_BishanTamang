@@ -10,6 +10,20 @@
 <div class="calendar-page">
     <div class="calendar-header">
         <h1 class="calendar-title">Calendar View</h1>
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-indicator positive"></div>
+                <span>Positive</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-indicator neutral"></div>
+                <span>Neutral</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-indicator negative"></div>
+                <span>Negative</span>
+            </div>
+        </div>
     </div>
 
     @if (hasError)
@@ -54,7 +68,12 @@
                 <!-- Calendar Days -->
                 @foreach (var day in calendarDays)
                 {
-                    <div class="calendar-day @GetDayClasses(day)" @onclick="() => SelectDate(day)">
+                    var moodCategory = GetMoodCategoryForDate(day);
+                    var categoryClass = moodCategory?.ToLower() ?? "";
+
+                    <div class="calendar-day @GetDayClasses(day) @categoryClass"
+                         @onclick="() => SelectDate(day)"
+                         title="@GetDayTitle(day, moodCategory)">
                         <span class="day-number">@day.Day</span>
                         @if (HasEntry(day))
                         {
@@ -72,8 +91,24 @@
                         <h3>@selectedEntry.Title</h3>
                         <span class="entry-date">@selectedEntry.Date.ToString("MMMM dd, yyyy")</span>
                     </div>
+
+                    @if (!string.IsNullOrWhiteSpace(selectedEntry.MoodCategory))
+                    {
+                        <div class="mood-badge-container">
+                            <span class="mood-badge @selectedEntry.MoodCategory.ToLower()">
+                                @MoodService.GetCategoryEmoji(selectedEntry.MoodCategory) @selectedEntry.MoodCategory
+                            </span>
+                            @if (!string.IsNullOrWhiteSpace(selectedEntry.PrimaryMood))
+                            {
+                                <span class="mood-detail">
+                                    @MoodService.GetMoodEmoji(selectedEntry.PrimaryMood) @selectedEntry.PrimaryMood
+                                </span>
+                            }
+                        </div>
+                    }
+
                     <div class="entry-preview-content">
-                        @(selectedEntry.Content.Length > 200 ? selectedEntry.Content.Substring(0, 200) + "..." : selectedEntry.Content)
+                        @GetContentPreview(selectedEntry.Content, 200)
                     </div>
                     <div class="entry-preview-actions">
                         <button class="btn-view-full" @onclick="() => ViewEntry(selectedEntry)">
@@ -100,6 +135,7 @@
     private DateTime? selectedDate;
     private List<DateTime> calendarDays = new();
     private List<JournalEntry> entries = new();
+    private Dictionary<DateTime, string> entryCategoriesByDate = new();
     private JournalEntry? selectedEntry;
     private bool isLoading = true;
     private bool hasError = false;
@@ -120,6 +156,12 @@
         try
         {
             entries = await JournalService.GetAllEntriesAsync();
+
+            // Build mood category lookup dictionary
+            entryCategoriesByDate = entries
+                .Where(e => !string.IsNullOrWhiteSpace(e.MoodCategory))
+                .ToDictionary(e => e.Date.Date, e => e.MoodCategory);
+
             Logger.LogInformation("Successfully loaded {Count} entries for calendar", entries.Count);
         }
         catch (ApplicationException ex)
@@ -173,7 +215,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error generating calendar days");
-            calendarDays.Clear(); // Ensure we don't display partial data
+            calendarDays.Clear();
         }
     }
 
@@ -207,6 +249,25 @@
         return entries.Any(e => e.Date.Date == date.Date);
     }
 
+    private string? GetMoodCategoryForDate(DateTime date)
+    {
+        return entryCategoriesByDate.TryGetValue(date.Date, out var category) ? category : null;
+    }
+
+    private string GetDayTitle(DateTime date, string? moodCategory)
+    {
+        if (moodCategory != null)
+        {
+            var entry = entries.FirstOrDefault(e => e.Date.Date == date.Date);
+            if (entry != null && !string.IsNullOrWhiteSpace(entry.PrimaryMood))
+            {
+                return $"{date:MMM dd} - {moodCategory} ({entry.PrimaryMood})";
+            }
+            return $"{date:MMM dd} - {moodCategory}";
+        }
+        return date.ToString("MMM dd");
+    }
+
     private string GetDayClasses(DateTime date)
     {
         var classes = new List<string>();
@@ -234,6 +295,23 @@
         return string.Join(" ", classes);
     }
 
+    private string GetContentPreview(string htmlContent, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(htmlContent))
+            return "No content available...";
+
+        var plainText = System.Text.RegularExpressions.Regex.Replace(htmlContent, "<.*?>", " ");
+        plainText = System.Text.RegularExpressions.Regex.Replace(plainText, @"\s+", " ").Trim();
+
+        if (string.IsNullOrWhiteSpace(plainText))
+            return "No content available...";
+
+        if (plainText.Length > maxLength)
+            return plainText.Substring(0, maxLength) + "...";
+
+        return plainText;
+    }
+
     private void ViewEntry(JournalEntry entry)
     {
         Navigation.NavigateTo($"/viewentry/{entry.Id}?from=calendar");
@@ -241,7 +319,6 @@
 
     private void CreateEntryForDate()
     {
-        // Navigate to new entry page
         Navigation.NavigateTo("/newentry");
     }
 }

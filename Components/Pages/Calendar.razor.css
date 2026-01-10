@@ -9,6 +9,11 @@
 
 .calendar-header {
     margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .calendar-title {
@@ -17,6 +22,42 @@
     color: var(--text-primary);
 }
 
+/* ========== MOOD LEGEND ========== */
+.legend {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.legend-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border-left: 4px solid;
+    background-color: var(--bg-secondary);
+}
+
+    .legend-indicator.positive {
+        border-left-color: #10b981;
+    }
+
+    .legend-indicator.neutral {
+        border-left-color: #6b7280;
+    }
+
+    .legend-indicator.negative {
+        border-left-color: #ef4444;
+    }
+
+/* ========== CALENDAR CONTAINER ========== */
 .calendar-container {
     background-color: var(--bg-secondary);
     border-radius: 12px;
@@ -60,7 +101,7 @@
     color: var(--text-primary);
 }
 
-/* Calendar Grid */
+/* ========== CALENDAR GRID ========== */
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -76,6 +117,7 @@
     font-size: 14px;
 }
 
+/* ========== CALENDAR DAY CELLS ========== */
 .calendar-day {
     aspect-ratio: 1;
     border: 1px solid var(--border-color);
@@ -109,41 +151,107 @@
     }
 
     .calendar-day.selected {
-        background-color: #5b5fc7;
+        background-color: rgba(91, 95, 199, 0.15);
         border-color: #5b5fc7;
     }
 
-        .calendar-day.selected .day-number {
-            color: white;
-        }
-
+    /* ========== MOOD CATEGORY COLORED BORDERS ========== */
     .calendar-day.has-entry {
-        background-color: rgba(16, 185, 129, 0.1);
-        border-color: #10b981;
+        border-left-width: 4px;
+        padding-left: 6px;
     }
 
+        /* Positive Mood - Green Border */
+        .calendar-day.has-entry.positive {
+            border-left-color: #10b981;
+            background-color: rgba(16, 185, 129, 0.05);
+        }
+
+            .calendar-day.has-entry.positive:hover {
+                background-color: rgba(16, 185, 129, 0.1);
+                border-left-color: #059669;
+            }
+
+            .calendar-day.has-entry.positive.selected {
+                background-color: rgba(16, 185, 129, 0.2);
+                border-color: #10b981;
+                border-left-color: #10b981;
+            }
+
+        /* Neutral Mood - Gray Border */
+        .calendar-day.has-entry.neutral {
+            border-left-color: #6b7280;
+            background-color: rgba(107, 114, 128, 0.05);
+        }
+
+            .calendar-day.has-entry.neutral:hover {
+                background-color: rgba(107, 114, 128, 0.1);
+                border-left-color: #4b5563;
+            }
+
+            .calendar-day.has-entry.neutral.selected {
+                background-color: rgba(107, 114, 128, 0.2);
+                border-color: #6b7280;
+                border-left-color: #6b7280;
+            }
+
+        /* Negative Mood - Red Border */
+        .calendar-day.has-entry.negative {
+            border-left-color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.05);
+        }
+
+            .calendar-day.has-entry.negative:hover {
+                background-color: rgba(239, 68, 68, 0.1);
+                border-left-color: #dc2626;
+            }
+
+            .calendar-day.has-entry.negative.selected {
+                background-color: rgba(239, 68, 68, 0.2);
+                border-color: #ef4444;
+                border-left-color: #ef4444;
+            }
+
+/* Day Number */
 .day-number {
     font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
 }
 
+/* Entry Indicator Dot */
 .entry-indicator {
     width: 6px;
     height: 6px;
-    background-color: #10b981;
+    background-color: var(--text-secondary);
     border-radius: 50%;
     margin-top: 4px;
+    opacity: 0.6;
 }
 
-/* Loading State */
+.calendar-day.has-entry.positive .entry-indicator {
+    background-color: #10b981;
+    opacity: 1;
+}
+
+.calendar-day.has-entry.neutral .entry-indicator {
+    background-color: #6b7280;
+    opacity: 1;
+}
+
+.calendar-day.has-entry.negative .entry-indicator {
+    background-color: #ef4444;
+    opacity: 1;
+}
+
+/* ========== LOADING STATE ========== */
 .loading-state {
     text-align: center;
     padding: 60px 20px;
     color: var(--text-secondary);
 }
 
-/* Entry Preview */
+/* ========== ENTRY PREVIEW ========== */
 .entry-preview {
     background-color: var(--bg-primary);
     border-radius: 12px;
@@ -180,6 +288,47 @@
     font-size: 14px;
 }
 
+/* ========== MOOD BADGES IN PREVIEW ========== */
+.mood-badge-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.mood-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+}
+
+    .mood-badge.positive {
+        background-color: #10b981;
+    }
+
+    .mood-badge.neutral {
+        background-color: #6b7280;
+    }
+
+    .mood-badge.negative {
+        background-color: #ef4444;
+    }
+
+.mood-detail {
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    background-color: var(--bg-tertiary);
+    border-radius: 12px;
+}
+
+/* ========== ENTRY PREVIEW CONTENT ========== */
 .entry-preview-content {
     color: var(--text-primary);
     line-height: 1.6;
@@ -221,7 +370,7 @@
         background-color: #4a4fb0;
     }
 
-/* Alert */
+/* ========== ALERT ========== */
 .alert {
     padding: 16px;
     background-color: #fee;
@@ -235,10 +384,53 @@
         margin-top: 10px;
     }
 
-/* Responsive Design */
+/* ========== DARK MODE ADJUSTMENTS ========== */
+[data-theme="dark"] .calendar-day:hover {
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .legend-indicator {
+    background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .calendar-day.has-entry.positive {
+    background-color: rgba(16, 185, 129, 0.08);
+}
+
+    [data-theme="dark"] .calendar-day.has-entry.positive:hover {
+        background-color: rgba(16, 185, 129, 0.15);
+    }
+
+[data-theme="dark"] .calendar-day.has-entry.neutral {
+    background-color: rgba(107, 114, 128, 0.08);
+}
+
+    [data-theme="dark"] .calendar-day.has-entry.neutral:hover {
+        background-color: rgba(107, 114, 128, 0.15);
+    }
+
+[data-theme="dark"] .calendar-day.has-entry.negative {
+    background-color: rgba(239, 68, 68, 0.08);
+}
+
+    [data-theme="dark"] .calendar-day.has-entry.negative:hover {
+        background-color: rgba(239, 68, 68, 0.15);
+    }
+
+/* ========== RESPONSIVE DESIGN ========== */
 @media (max-width: 768px) {
     .calendar-container {
         padding: 16px;
+    }
+
+    .calendar-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .legend {
+        width: 100%;
+        justify-content: space-between;
     }
 
     .calendar-nav {
@@ -258,7 +450,46 @@
         font-size: 14px;
     }
 
+    .entry-indicator {
+        width: 4px;
+        height: 4px;
+    }
+
     .entry-preview-actions {
         flex-direction: column;
+    }
+
+    .btn-view-full,
+    .btn-create-entry {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-page {
+        padding: 20px 12px;
+    }
+
+    .calendar-title {
+        font-size: 24px;
+    }
+
+    .legend {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .current-month {
+        font-size: 20px;
+    }
+
+    .weekday-header {
+        font-size: 12px;
+        padding: 8px 0;
+    }
+
+    .day-number {
+        font-size: 12px;
     }
 }
