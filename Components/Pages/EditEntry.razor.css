@@ -1,4 +1,4 @@
-﻿/* ========== NEW ENTRY PAGE ========== */
+﻿/* ========== EDIT ENTRY PAGE ========== */
 .entry-container {
     max-width: 900px;
     margin: 0;
@@ -171,6 +171,66 @@
         transform: scale(1.1);
     }
 
+/* ========== MANUAL CATEGORY SELECTOR ========== */
+.category-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.category-option {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+}
+
+    .category-option input[type="radio"] {
+        display: none;
+    }
+
+.category-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 12px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    background-color: var(--bg-secondary);
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.category-emoji {
+    font-size: 36px;
+    line-height: 1;
+}
+
+.category-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.category-option:hover .category-content {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: var(--category-color);
+}
+
+.category-option.selected .category-content {
+    border-color: var(--category-color);
+    background-color: var(--category-color);
+}
+
+    .category-option.selected .category-content .category-name {
+        color: white;
+    }
+
+    .category-option.selected .category-content .category-emoji {
+        transform: scale(1.1);
+    }
+
 /* Secondary Mood Selection */
 .secondary-mood-container {
     margin-bottom: 8px;
@@ -291,6 +351,110 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
+/* ========== CUSTOM TAG SECTION ========== */
+.custom-tag-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.custom-tag-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.custom-tag-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
+    .custom-tag-input-row .form-input {
+        flex: 1;
+        margin: 0;
+    }
+
+.btn-add-tag {
+    padding: 12px 20px;
+    background-color: #10b981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+    .btn-add-tag:hover {
+        background-color: #059669;
+    }
+
+.custom-tags-list {
+    margin-top: 16px;
+    padding: 12px;
+    background-color: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.custom-tag-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background-color: #6b7280;
+    color: white;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+.remove-tag {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 2px;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+    .remove-tag:hover {
+        background-color: rgba(0,0,0,0.2);
+    }
+
+/* ========== TIMESTAMPS DISPLAY ========== */
+.timestamps-display {
+    padding: 16px;
+    background-color: var(--bg-tertiary);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+    .timestamps-display p {
+        margin: 4px 0;
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    .timestamps-display strong {
+        color: var(--text-primary);
+    }
+
 /* Button Group */
 .button-group {
     display: flex;
@@ -344,6 +508,52 @@
         background-color: #4a5568;
     }
 
+/* ========== MODAL STYLES ========== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+    .modal-content h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: #1a1a1a;
+    }
+
+    .modal-content p {
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+.warning-text {
+    color: #e53e3e;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
 /* Dark Mode Support */
 [data-theme="dark"] .entry-header h2 {
     color: var(--text-primary);
@@ -377,6 +587,26 @@
     background-color: var(--bg-tertiary);
 }
 
+[data-theme="dark"] .modal-content {
+    background-color: var(--bg-secondary);
+}
+
+    [data-theme="dark"] .modal-content h3 {
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .modal-content p {
+        color: var(--text-secondary);
+    }
+
+[data-theme="dark"] .custom-tags-list {
+    background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .timestamps-display {
+    background-color: var(--bg-secondary);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .entry-container {
@@ -393,5 +623,21 @@
 
     .mood-name {
         font-size: 12px;
+    }
+
+    .custom-tag-input-row {
+        flex-direction: column;
+    }
+
+    .btn-add-tag {
+        width: 100%;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
     }
 }
