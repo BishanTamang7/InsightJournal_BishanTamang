@@ -1,4 +1,4 @@
-// Quill.js Rich Text Editor Interop for MAUI Blazor
+// Quill editor wrapper for Blazor interop
 
 window.quillEditor = {
     instances: {},

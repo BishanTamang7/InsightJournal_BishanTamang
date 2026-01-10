@@ -1,4 +1,4 @@
-/* TOGGLER BUTTON */
+/* Toggler Button */
 .navbar-toggler {
     appearance: none;
     cursor: pointer;
@@ -16,7 +16,7 @@
         background-color: rgba(255, 255, 255, 0.5);
     }
 
-/* TOP BAR */
+/* Top Bar */
 .top-row {
     min-height: 3.5rem;
     background-color: rgba(0, 0, 0, 0.45);
@@ -27,7 +27,7 @@
     font-weight: 600;
 }
 
-/* ICON BASE STYLE */
+/* STYLE Icon Base Style*/
 .bi {
     display: inline-block;
     width: 1.25rem;
@@ -38,7 +38,7 @@
     flex-shrink: 0;
 }
 
-/* ICONS */
+/* Icons */
 
 .bi {
     display: inline-block;
@@ -75,7 +75,7 @@
 }
 
 
-/* NAV ITEMS */
+/* Nav Items */
 .nav-item {
     font-size: 0.95rem;
     padding-bottom: 0.5rem;
@@ -111,7 +111,7 @@
         color: white;
     }
 
-/* SIDEBAR BEHAVIOR */
+/* Sidebar Behavior*/
 .nav-scrollable {
     display: none;
 }
@@ -120,7 +120,7 @@
     display: block;
 }
 
-/* DESKTOP MODE */
+/* Destop Mode*/
 @media (min-width: 641px) {
     .navbar-toggler {
         display: none;

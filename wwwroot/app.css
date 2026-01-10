@@ -1,4 +1,4 @@
-﻿/* ========== CSS CUSTOM PROPERTIES (THEME VARIABLES) ========== */
+﻿/* CSS Custom Properties */
 :root {
     --bg-primary: #ffffff;
     --bg-secondary: #fdfdfd;
@@ -38,7 +38,7 @@
     --btn-active-bg: #f3f1ff;
 }
 
-/* ========== BASE STYLES ========== */
+/* Base Style */
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     background-color: var(--bg-primary);
@@ -85,7 +85,7 @@ h1:focus {
     color: #e50000;
 }
 
-/* ========== BLAZOR ERROR UI ========== */
+/* Blazor Error UI */
 #blazor-error-ui {
     color-scheme: light only;
     background: lightyellow;
@@ -117,7 +117,7 @@ h1:focus {
         content: "An error has occurred."
     }
 
-/* ========== FORM STYLES ========== */
+/* Form Styles */
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
@@ -131,7 +131,6 @@ h1:focus {
     text-align: start;
 }
 
-/* ========== SAFE AREA (iOS) ========== */
 .status-bar-safe-area {
     display: none;
 }

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace InsightJournal.Services
+﻿namespace InsightJournal.Services
 {
     public class TagService
     {

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace InsightJournal.Services
+﻿namespace InsightJournal.Services
 {
     public class MoodService
     {
@@ -87,7 +84,7 @@ namespace InsightJournal.Services
             };
         }
 
-        // Get background color for mood (lighter shade for UI)
+        // Get background color for mood
         public static string GetMoodBackgroundColor(string mood)
         {
             var category = GetMoodCategory(mood);

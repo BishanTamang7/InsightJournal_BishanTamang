@@ -1,5 +1,4 @@
-﻿/* ========== EDIT ENTRY PAGE ========== */
-.entry-container {
+﻿.entry-container {
     max-width: 900px;
     margin: 0;
     padding: 20px 0 0 24px;
@@ -89,7 +88,7 @@
         border-color: #4c51bf;
     }
 
-/* ========== MOOD SELECTION STYLES ========== */
+/* Mood Selection Styles */
 .mood-categories {
     display: flex;
     flex-direction: column;
@@ -171,7 +170,7 @@
         transform: scale(1.1);
     }
 
-/* ========== MANUAL CATEGORY SELECTOR ========== */
+/* Manual Category Selector */
 .category-selector {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -351,7 +350,7 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* ========== CUSTOM TAG SECTION ========== */
+/* Custom Tag Selection */
 .custom-tag-section {
     margin-top: 20px;
     padding-top: 20px;
@@ -437,7 +436,7 @@
         background-color: rgba(0,0,0,0.2);
     }
 
-/* ========== TIMESTAMPS DISPLAY ========== */
+/* Timestamps Display */
 .timestamps-display {
     padding: 16px;
     background-color: var(--bg-tertiary);
@@ -508,7 +507,7 @@
         background-color: #4a5568;
     }
 
-/* ========== MODAL STYLES ========== */
+/* MODAL STYLES Modal Styles */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -554,7 +553,7 @@
     justify-content: flex-end;
 }
 
-/* Dark Mode Support */
+/* Dark Mode */
 [data-theme="dark"] .entry-header h2 {
     color: var(--text-primary);
 }

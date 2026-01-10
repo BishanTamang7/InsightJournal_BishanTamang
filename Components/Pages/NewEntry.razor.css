@@ -1,5 +1,4 @@
-﻿/* ========== NEW ENTRY PAGE ========== */
-.entry-container {
+﻿.entry-container {
     max-width: 900px;
     margin: 0;
     padding: 20px 0 0 24px;
@@ -89,7 +88,7 @@
         border-color: #4c51bf;
     }
 
-/* ========== MOOD SELECTION STYLES ========== */
+/* Mood Selection Styles */
 .mood-categories {
     display: flex;
     flex-direction: column;
@@ -396,9 +395,8 @@
     }
 }
 
-/* Keep all your existing styles and ADD these: */
 
-/* ========== MANUAL CATEGORY SELECTOR ========== */
+/* Manual Category Selector */
 .category-selector {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -458,7 +456,7 @@
         transform: scale(1.1);
     }
 
-/* ========== CUSTOM TAG SECTION ========== */
+/* Custom Tag Selection */
 .custom-tag-section {
     margin-top: 20px;
     padding-top: 20px;
@@ -544,7 +542,7 @@
         background-color: rgba(0,0,0,0.2);
     }
 
-/* ========== TIMESTAMPS DISPLAY ========== */
+/* Timestamps Display */
 .timestamps-display {
     padding: 16px;
     background-color: var(--bg-tertiary);
@@ -562,7 +560,7 @@
         color: var(--text-primary);
     }
 
-/* ========== MODAL STYLES ========== */
+/* Modal Styles*/
 .modal-overlay {
     position: fixed;
     top: 0;

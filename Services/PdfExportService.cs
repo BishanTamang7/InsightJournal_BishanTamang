@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using System.Linq;
+
 
 namespace InsightJournal.Services
 {
@@ -15,7 +15,7 @@ namespace InsightJournal.Services
         {
             _logger = logger;
 
-            // Set QuestPDF license (Community license for non-commercial use)
+            // Set QuestPDF license
             QuestPDF.Settings.License = LicenseType.Community;
         }
 

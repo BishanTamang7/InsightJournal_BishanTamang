@@ -1,6 +1,4 @@
-﻿/* ========== CLEAN DASHBOARD STYLES ========== */
-
-.dashboard-page {
+﻿.dashboard-page {
     max-width: 1200px;
     margin: 0 auto;
     padding: 32px 24px;
@@ -8,7 +6,7 @@
     min-height: 100vh;
 }
 
-/* ========== HEADER ========== */
+/* Header */
 .dashboard-header {
     margin-bottom: 32px;
 }
@@ -26,7 +24,7 @@
         margin: 0;
     }
 
-/* ========== STATUS BANNER ========== */
+/* Status Banner*/
 .status-banner {
     display: flex;
     align-items: center;
@@ -71,7 +69,7 @@
         opacity: 0.8;
     }
 
-/* ========== STATS GRID ========== */
+/* Status Grid */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -101,7 +99,7 @@
     letter-spacing: 0.5px;
 }
 
-/* ========== ACTIONS ROW ========== */
+/* Acition Row*/
 .actions-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -144,7 +142,7 @@
     font-size: 16px;
 }
 
-/* ========== CONTENT GRID ========== */
+/* Content Grid*/
 .content-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -157,7 +155,7 @@
     gap: 24px;
 }
 
-/* ========== CARD ========== */
+/* Card */
 .card {
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
@@ -172,7 +170,7 @@
     margin: 0 0 20px 0;
 }
 
-/* ========== MOOD ITEMS ========== */
+/* Mood Items */
 .mood-item {
     margin-bottom: 16px;
 }
@@ -209,7 +207,7 @@
     transition: width 0.3s ease;
 }
 
-/* ========== TAGS LIST ========== */
+/* Tags List */
 .tags-list {
     display: flex;
     flex-direction: column;
@@ -243,7 +241,7 @@
     border-radius: 12px;
 }
 
-/* ========== ENTRY PREVIEW ========== */
+/* Enty Preview */
 .entry-title {
     font-size: 18px;
     font-weight: 600;
@@ -288,7 +286,7 @@
         opacity: 0.7;
     }
 
-/* ========== EMPTY STATE ========== */
+/* Empty Status */
 .empty-state {
     text-align: center;
     padding: 48px 24px;
@@ -335,7 +333,7 @@
     margin: 20px 0;
 }
 
-/* ========== STATS LIST ========== */
+/* Stats List */
 .stats-list {
     display: flex;
     flex-direction: column;
@@ -373,7 +371,7 @@
     line-height: 1;
 }
 
-/* ========== RECENT LIST ========== */
+/* Recent List*/
 .recent-list {
     display: flex;
     flex-direction: column;
@@ -417,7 +415,7 @@
     font-size: 20px;
 }
 
-/* ========== LOADING & ERROR ========== */
+/* Loading and Error */
 .loading,
 .error-box {
     text-align: center;
@@ -447,7 +445,7 @@
     cursor: pointer;
 }
 
-/* ========== RESPONSIVE ========== */
+/* Responsive */
 @media (max-width: 900px) {
     .content-grid {
         grid-template-columns: 1fr;
@@ -493,7 +491,7 @@
     }
 }
 
-/* ========== DARK MODE ========== */
+/* Dark Mode */
 [data-theme="dark"] .stat-box,
 [data-theme="dark"] .card,
 [data-theme="dark"] .action-btn {

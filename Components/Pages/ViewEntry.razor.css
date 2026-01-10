@@ -1,5 +1,4 @@
-﻿/* ========== VIEW ENTRY PAGE ========== */
-.entry-container {
+﻿.entry-container {
     max-width: 900px;
     margin: 0;
     padding: 20px 0 40px 24px;
@@ -289,7 +288,7 @@
     justify-content: flex-end;
 }
 
-/* Dark Mode Support */
+/* Dark Mode */
 [data-theme="dark"] .alert-error {
     background-color: rgba(239, 68, 68, 0.15);
     color: #f87171;

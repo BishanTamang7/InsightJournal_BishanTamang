@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace InsightJournal.Services
+﻿namespace InsightJournal.Services
 {
     public class ThemeService
     {

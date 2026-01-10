@@ -18,7 +18,7 @@ namespace InsightJournal.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Make sure only one entry per day (unique constraint on Date)
+            // Make one entry per day (unique constraint on Date)
             modelBuilder.Entity<JournalEntry>()
                 .HasIndex(e => e.Date)
                 .IsUnique();

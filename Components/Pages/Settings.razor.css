@@ -1,5 +1,4 @@
-﻿/* ========== SETTINGS PAGE ========== */
-.settings-page {
+﻿.settings-page {
     max-width: 900px;
     margin: 0;
     padding: 20px 0 0 24px;
@@ -248,7 +247,7 @@
     }
 }
 
-/* Dark Mode Adjustments */
+/* Dark Mode */
 [data-theme="dark"] .date-input {
     background-color: var(--bg-tertiary);
     border-color: var(--border-color);

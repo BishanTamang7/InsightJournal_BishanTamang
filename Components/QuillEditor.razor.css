@@ -149,7 +149,7 @@
     padding-left: 1.5em !important;
 }
 
-/* Dark Mode Support */
+/* Dark Mode */
 [data-theme="dark"] :global(.ql-editor) {
     background-color: var(--bg-secondary) !important;
 }
