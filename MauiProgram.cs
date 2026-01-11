@@ -28,6 +28,9 @@ namespace InsightJournal
             // Register ThemeService as Singleton
             builder.Services.AddSingleton<ThemeService>();
 
+            // Register PasswordService as Singleton
+            builder.Services.AddSingleton<PasswordService>();
+
             // Register Services with proper lifetimes
             builder.Services.AddScoped<JournalService>();
             builder.Services.AddScoped<PdfExportService>();

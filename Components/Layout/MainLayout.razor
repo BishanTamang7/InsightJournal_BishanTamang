@@ -1,22 +1,41 @@
 ﻿@inherits LayoutComponentBase
 @inject ThemeService ThemeService
+@inject PasswordService PasswordService
 @implements IDisposable
 
-<div class="page" data-theme="@ThemeService.CurrentTheme">
-    <div class="sidebar">
-        <NavMenu />
+@if (showPasswordLock)
+{
+    <PasswordLock OnUnlocked="OnPasswordUnlocked" />
+}
+else
+{
+    <div class="page" data-theme="@ThemeService.CurrentTheme">
+        <div class="sidebar">
+            <NavMenu />
+        </div>
+        <main>
+            <article class="content px-4">
+                @Body
+            </article>
+        </main>
     </div>
-    <main>
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+}
 
 @code {
+    private bool showPasswordLock = false;
+
     protected override void OnInitialized()
     {
         ThemeService.OnThemeChanged += StateHasChanged;
+        
+        // Check if password lock should be shown
+        showPasswordLock = PasswordService.IsPasswordEnabled() && PasswordService.HasPassword();
+    }
+
+    private void OnPasswordUnlocked()
+    {
+        showPasswordLock = false;
+        StateHasChanged();
     }
 
     public void Dispose()

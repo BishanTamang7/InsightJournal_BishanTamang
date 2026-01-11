@@ -2,6 +2,8 @@
 @inject ThemeService ThemeService
 @inject JournalService JournalService
 @inject PdfExportService PdfExportService
+@inject PasswordService PasswordService
+@inject ILogger<Settings> Logger
 
 <div class="settings-page">
     <div class="settings-content">
@@ -12,17 +14,22 @@
             <h2 class="section-title">Security & Privacy</h2>
 
             <div class="setting-item">
-                <div class="setting-label">Enable Password/PIN Protection</div>
+                <div class="setting-label">Enable Password</div>
                 <label class="toggle-switch">
-                    <input type="checkbox" @bind="passwordProtectionEnabled" />
+                    <input type="checkbox"
+                           @bind="passwordProtectionEnabled"
+                           @bind:after="OnPasswordToggleChanged" />
                     <span class="toggle-slider"></span>
                 </label>
             </div>
 
-            <div class="setting-item">
-                <div class="setting-label">Change Password/PIN</div>
-                <button class="action-btn" @onclick="ChangePassword">Change</button>
-            </div>
+            @if (passwordProtectionEnabled && PasswordService.HasPassword())
+            {
+                <div class="setting-item">
+                    <div class="setting-label">Change Password</div>
+                    <button class="action-btn" @onclick="ShowChangePasswordModal">Change</button>
+                </div>
+            }
         </section>
 
         <!-- Data Management -->
@@ -73,19 +80,130 @@
 </div>
 
 <!-- Toast Notification -->
-@if (!string.IsNullOrEmpty(exportMessage))
+@if (!string.IsNullOrEmpty(toastMessage))
 {
-    <div style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; animation: slideDown 0.3s ease-out;">
-        <div style="background: @(exportSuccess ? "#10b981" : "#ef4444"); color: white; padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
-            @if (exportSuccess)
+    <div class="toast-notification @(toastSuccess ? "success" : "error")">
+        <div class="toast-content">
+            @if (toastSuccess)
             {
-                <span style="font-size: 18px;">✓</span>
+                <span class="toast-icon">✓</span>
             }
             else
             {
-                <span style="font-size: 18px;">✕</span>
+                <span class="toast-icon">✕</span>
             }
-            <span>@exportMessage</span>
+            <span>@toastMessage</span>
+        </div>
+    </div>
+}
+
+<!-- Set Password Modal (First Time) -->
+@if (showSetPasswordModal)
+{
+    <div class="modal-overlay" @onclick="CancelSetPassword">
+        <div class="modal-content password-modal" @onclick:stopPropagation>
+            <h3>Set Password</h3>
+            <p>Create a password to protect your journal</p>
+
+            @if (!string.IsNullOrEmpty(passwordError))
+            {
+                <div class="password-error">
+                    ⚠️ @passwordError
+                </div>
+            }
+
+            <form @onsubmit="ConfirmSetPassword" class="password-form-modal">
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password"
+                           class="form-input"
+                           @bind="newPassword"
+                           placeholder="Enter new password"
+                           minlength="4"
+                           required />
+                </div>
+
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password"
+                           class="form-input"
+                           @bind="confirmPassword"
+                           placeholder="Confirm new password"
+                           minlength="4"
+                           required />
+                </div>
+
+                <div class="password-requirements">
+                    <p>Password must be at least 4 characters long</p>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        Set Password
+                    </button>
+                    <button type="button" class="btn btn-secondary" @onclick="CancelSetPassword">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+<!-- Change Password Modal -->
+@if (showChangePasswordModal)
+{
+    <div class="modal-overlay" @onclick="CancelChangePassword">
+        <div class="modal-content password-modal" @onclick:stopPropagation>
+            <h3>Change Password</h3>
+            <p>Enter your current password and choose a new one</p>
+
+            @if (!string.IsNullOrEmpty(passwordError))
+            {
+                <div class="password-error">
+                    ⚠️ @passwordError
+                </div>
+            }
+
+            <form @onsubmit="ConfirmChangePassword" class="password-form-modal">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password"
+                           class="form-input"
+                           @bind="currentPassword"
+                           placeholder="Enter current password"
+                           required />
+                </div>
+
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password"
+                           class="form-input"
+                           @bind="newPassword"
+                           placeholder="Enter new password"
+                           minlength="4"
+                           required />
+                </div>
+
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password"
+                           class="form-input"
+                           @bind="confirmPassword"
+                           placeholder="Confirm new password"
+                           minlength="4"
+                           required />
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        Change Password
+                    </button>
+                    <button type="button" class="btn btn-secondary" @onclick="CancelChangePassword">
+                        Cancel
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 }
@@ -132,13 +250,21 @@
     // Export related
     private bool isExporting = false;
     private bool showExportModal = false;
-    private string? exportMessage;
-    private bool exportSuccess = false;
-    private string? lastExportPath;
+    private string? toastMessage;
+    private bool toastSuccess = false;
+
+    // Password related
+    private bool showSetPasswordModal = false;
+    private bool showChangePasswordModal = false;
+    private string currentPassword = "";
+    private string newPassword = "";
+    private string confirmPassword = "";
+    private string? passwordError;
 
     protected override void OnInitialized()
     {
         isDarkMode = ThemeService.CurrentTheme == "dark";
+        passwordProtectionEnabled = PasswordService.IsPasswordEnabled();
     }
 
     private void OnDarkModeChanged()
@@ -146,27 +272,188 @@
         ThemeService.SetTheme(isDarkMode ? "dark" : "light");
     }
 
-    private void ChangePassword()
+    // Password Toggle Changed
+    private async Task OnPasswordToggleChanged()
     {
-        // TODO: Implement password change functionality
-        Console.WriteLine("Change password clicked");
+        try
+        {
+            if (passwordProtectionEnabled)
+            {
+                // Enabling password protection
+                if (!PasswordService.HasPassword())
+                {
+                    // No password set yet, show set password modal
+                    showSetPasswordModal = true;
+                }
+                else
+                {
+                    // Password already exists, just enable it
+                    PasswordService.SetPasswordEnabled(true);
+                    ShowToast("Password protection enabled", true);
+                }
+            }
+            else
+            {
+                // Disabling password protection
+                PasswordService.SetPasswordEnabled(false);
+                ShowToast("Password protection disabled", true);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error toggling password protection");
+            passwordProtectionEnabled = !passwordProtectionEnabled; // Revert toggle
+            ShowToast("Failed to change password protection", false);
+        }
     }
 
-    private void ShowExportConfirmation()
+    // Set Password (First Time)
+    private void ConfirmSetPassword()
     {
-        // Clear previous messages
-        exportMessage = null;
-        exportSuccess = false;
+        passwordError = null;
 
-        // Validate date range before showing modal
-        if (exportEndDate < exportStartDate)
+        if (string.IsNullOrWhiteSpace(newPassword))
         {
-            exportMessage = "❌ End date must be after start date. Please adjust your date range.";
-            exportSuccess = false;
+            passwordError = "Password cannot be empty";
             return;
         }
 
-        // Show confirmation modal
+        if (newPassword.Length < 4)
+        {
+            passwordError = "Password must be at least 4 characters long";
+            return;
+        }
+
+        if (newPassword != confirmPassword)
+        {
+            passwordError = "Passwords do not match";
+            return;
+        }
+
+        try
+        {
+            if (PasswordService.SetPassword(newPassword))
+            {
+                PasswordService.SetPasswordEnabled(true);
+                showSetPasswordModal = false;
+                ClearPasswordFields();
+                ShowToast("Password set successfully", true);
+                Logger.LogInformation("Password protection enabled");
+            }
+            else
+            {
+                passwordError = "Failed to set password. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error setting password");
+            passwordError = "An error occurred while setting the password";
+        }
+    }
+
+    private void CancelSetPassword()
+    {
+        showSetPasswordModal = false;
+        passwordProtectionEnabled = false; // Revert toggle
+        ClearPasswordFields();
+    }
+
+    // Change Password
+    private void ShowChangePasswordModal()
+    {
+        showChangePasswordModal = true;
+        passwordError = null;
+        ClearPasswordFields();
+    }
+
+    private void ConfirmChangePassword()
+    {
+        passwordError = null;
+
+        if (string.IsNullOrWhiteSpace(currentPassword))
+        {
+            passwordError = "Please enter your current password";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(newPassword))
+        {
+            passwordError = "New password cannot be empty";
+            return;
+        }
+
+        if (newPassword.Length < 4)
+        {
+            passwordError = "Password must be at least 4 characters long";
+            return;
+        }
+
+        if (newPassword != confirmPassword)
+        {
+            passwordError = "New passwords do not match";
+            return;
+        }
+
+        try
+        {
+            if (PasswordService.ChangePassword(currentPassword, newPassword))
+            {
+                showChangePasswordModal = false;
+                ClearPasswordFields();
+                ShowToast("Password changed successfully", true);
+                Logger.LogInformation("Password changed successfully");
+            }
+            else
+            {
+                passwordError = "Current password is incorrect";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error changing password");
+            passwordError = "An error occurred while changing the password";
+        }
+    }
+
+    private void CancelChangePassword()
+    {
+        showChangePasswordModal = false;
+        ClearPasswordFields();
+    }
+
+    // Helper Methods
+    private void ClearPasswordFields()
+    {
+        currentPassword = "";
+        newPassword = "";
+        confirmPassword = "";
+        passwordError = null;
+    }
+
+    private async void ShowToast(string message, bool success)
+    {
+        toastMessage = message;
+        toastSuccess = success;
+        StateHasChanged();
+
+        await Task.Delay(3000);
+        toastMessage = null;
+        StateHasChanged();
+    }
+
+    // Export Methods
+    private void ShowExportConfirmation()
+    {
+        toastMessage = null;
+        toastSuccess = false;
+
+        if (exportEndDate < exportStartDate)
+        {
+            ShowToast("End date must be after start date", false);
+            return;
+        }
+
         showExportModal = true;
     }
 
@@ -184,29 +471,19 @@
     private async Task ExportToPdf()
     {
         isExporting = true;
-        exportMessage = null;
-        exportSuccess = false;
-        lastExportPath = null;
-        StateHasChanged(); // Update UI to show "Exporting..." button state
+        toastMessage = null;
+        toastSuccess = false;
+        StateHasChanged();
 
         try
         {
-            // Validate date range
             if (exportEndDate < exportStartDate)
             {
                 isExporting = false;
-                exportMessage = "❌ End date must be after start date.";
-                exportSuccess = false;
-                StateHasChanged();
-
-                // Auto-hide error message after 1 second
-                await Task.Delay(1000);
-                exportMessage = null;
-                StateHasChanged();
+                ShowToast("End date must be after start date", false);
                 return;
             }
 
-            // Get entries within date range
             var allEntries = await JournalService.GetAllEntriesAsync();
             var filteredEntries = allEntries
                 .Where(e => e.Date.Date >= exportStartDate.Date && e.Date.Date <= exportEndDate.Date)
@@ -215,75 +492,25 @@
             if (filteredEntries.Count == 0)
             {
                 isExporting = false;
-                exportMessage = $"📭 No entries found between {exportStartDate:MMM dd, yyyy} and {exportEndDate:MMM dd, yyyy}.";
-                exportSuccess = false;
-                StateHasChanged();
-
-                // Auto-hide error message after 1 second
-                await Task.Delay(1000);
-                exportMessage = null;
-                StateHasChanged();
+                ShowToast($"No entries found between {exportStartDate:MMM dd, yyyy} and {exportEndDate:MMM dd, yyyy}", false);
                 return;
             }
 
-            // Export to PDF
-            lastExportPath = await PdfExportService.ExportEntriesToPdfAsync(
+            await PdfExportService.ExportEntriesToPdfAsync(
                 filteredEntries,
                 exportStartDate,
                 exportEndDate,
-                "InsightJournal User" // You can customize this
+                "InsightJournal User"
             );
 
-            // Get statistics
-            var stats = PdfExportService.GetExportStatistics(filteredEntries);
-
-            // Export is complete, now show success message
             isExporting = false;
-            exportMessage = $"PDF exported successfully to Downloads folder";
-            exportSuccess = true;
-            StateHasChanged();
-
-            // Auto-hide message after 1 second
-            await Task.Delay(1000);
-            exportMessage = null;
-            StateHasChanged();
+            ShowToast("PDF exported successfully to Downloads folder", true);
         }
         catch (Exception ex)
         {
             isExporting = false;
-            exportMessage = $"❌ Error exporting PDF: {ex.Message}";
-            exportSuccess = false;
-            Console.WriteLine($"PDF Export Error: {ex}");
-            StateHasChanged();
-
-            // Auto-hide error message after 1 second
-            await Task.Delay(1000);
-            exportMessage = null;
-            StateHasChanged();
-        }
-    }
-
-    private async Task OpenExportedFile()
-    {
-        try
-        {
-            if (!string.IsNullOrEmpty(lastExportPath) && File.Exists(lastExportPath))
-            {
-                await Launcher.OpenAsync(new OpenFileRequest
-                {
-                    File = new ReadOnlyFile(lastExportPath)
-                });
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error opening file: {ex.Message}");
-            exportMessage = "❌ Could not open the PDF file.";
-            exportSuccess = false;
-
-            // Auto-hide error message after 1 second
-            await Task.Delay(1000);
-            exportMessage = null;
+            ShowToast($"Error exporting PDF: {ex.Message}", false);
+            Logger.LogError(ex, "PDF Export Error");
         }
     }
 }

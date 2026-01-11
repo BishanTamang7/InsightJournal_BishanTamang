@@ -193,6 +193,7 @@
     .modal-content h3 {
         margin-top: 0;
         margin-bottom: 15px;
+        color: #1a1a1a;
     }
 
     .modal-content p {
@@ -234,7 +235,102 @@
         background-color: #4a5568;
     }
 
-/* Toast Notification Animations */
+/* Password Modal Specific */
+.password-modal {
+    max-width: 450px;
+}
+
+.password-form-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+    .form-group label {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .form-group .form-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 15px;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        transition: border-color 0.2s;
+    }
+
+        .form-group .form-input:focus {
+            outline: none;
+            border-color: #5b5fc7;
+        }
+
+.password-error {
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #dc2626;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.password-requirements {
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 12px;
+    background-color: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+    .password-requirements p {
+        margin: 0;
+    }
+
+/* Toast Notification */
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2000;
+    animation: slideDown 0.3s ease-out;
+}
+
+.toast-content {
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toast-notification.success .toast-content {
+    background: #10b981;
+    color: white;
+}
+
+.toast-notification.error .toast-content {
+    background: #ef4444;
+    color: white;
+}
+
+.toast-icon {
+    font-size: 18px;
+}
+
 @keyframes slideDown {
     from {
         opacity: 0;
@@ -261,9 +357,22 @@
     background-color: var(--bg-secondary);
 }
 
+    [data-theme="dark"] .modal-content h3 {
+        color: var(--text-primary);
+    }
+
     [data-theme="dark"] .modal-content p {
         color: var(--text-secondary);
     }
+
+[data-theme="dark"] .password-error {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+
+[data-theme="dark"] .password-requirements {
+    background-color: var(--bg-secondary);
+}
 
 /* Responsive */
 @media (max-width: 640px) {
