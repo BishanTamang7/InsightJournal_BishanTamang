@@ -83,55 +83,7 @@
                 </div>
             </div>
 
-            <!-- Manual Category Selector -->
-            <div class="form-group">
-                <label>Category <span style="color: #ef4444;">*</span></label>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
-                    Select the emotional category (Required)
-                </p>
-                <div class="category-selector">
-                    <label class="category-option @(selectedCategory == "Positive" ? "selected" : "")"
-                           style="--category-color: #10b981;">
-                        <input type="radio"
-                               name="category"
-                               value="Positive"
-                               checked="@(selectedCategory == "Positive")"
-                               @onchange="@(() => selectedCategory = "Positive")" />
-                        <span class="category-content">
-                            <span class="category-emoji">😊</span>
-                            <span class="category-name">Positive</span>
-                        </span>
-                    </label>
-
-                    <label class="category-option @(selectedCategory == "Neutral" ? "selected" : "")"
-                           style="--category-color: #6b7280;">
-                        <input type="radio"
-                               name="category"
-                               value="Neutral"
-                               checked="@(selectedCategory == "Neutral")"
-                               @onchange="@(() => selectedCategory = "Neutral")" />
-                        <span class="category-content">
-                            <span class="category-emoji">😐</span>
-                            <span class="category-name">Neutral</span>
-                        </span>
-                    </label>
-
-                    <label class="category-option @(selectedCategory == "Negative" ? "selected" : "")"
-                           style="--category-color: #ef4444;">
-                        <input type="radio"
-                               name="category"
-                               value="Negative"
-                               checked="@(selectedCategory == "Negative")"
-                               @onchange="@(() => selectedCategory = "Negative")" />
-                        <span class="category-content">
-                            <span class="category-emoji">😢</span>
-                            <span class="category-name">Negative</span>
-                        </span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- Secondary Moods -->
+            <!-- Secondary Moods - MOVED UP -->
             <div class="form-group">
                 <label>Secondary Moods (Optional)</label>
                 <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
@@ -189,6 +141,54 @@
                         }
                     </div>
                 }
+            </div>
+
+            <!-- Manual Category Selector - MOVED DOWN -->
+            <div class="form-group">
+                <label>Category <span style="color: #ef4444;">*</span></label>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+                    Select the emotional category (Required)
+                </p>
+                <div class="category-selector">
+                    <label class="category-option @(selectedCategory == "Positive" ? "selected" : "")"
+                           style="--category-color: #10b981;">
+                        <input type="radio"
+                               name="category"
+                               value="Positive"
+                               checked="@(selectedCategory == "Positive")"
+                               @onchange="@(() => selectedCategory = "Positive")" />
+                        <span class="category-content">
+                            <span class="category-emoji">😊</span>
+                            <span class="category-name">Positive</span>
+                        </span>
+                    </label>
+
+                    <label class="category-option @(selectedCategory == "Neutral" ? "selected" : "")"
+                           style="--category-color: #6b7280;">
+                        <input type="radio"
+                               name="category"
+                               value="Neutral"
+                               checked="@(selectedCategory == "Neutral")"
+                               @onchange="@(() => selectedCategory = "Neutral")" />
+                        <span class="category-content">
+                            <span class="category-emoji">😐</span>
+                            <span class="category-name">Neutral</span>
+                        </span>
+                    </label>
+
+                    <label class="category-option @(selectedCategory == "Negative" ? "selected" : "")"
+                           style="--category-color: #ef4444;">
+                        <input type="radio"
+                               name="category"
+                               value="Negative"
+                               checked="@(selectedCategory == "Negative")"
+                               @onchange="@(() => selectedCategory = "Negative")" />
+                        <span class="category-content">
+                            <span class="category-emoji">😢</span>
+                            <span class="category-name">Negative</span>
+                        </span>
+                    </label>
+                </div>
             </div>
 
             <!-- Tags Section -->
