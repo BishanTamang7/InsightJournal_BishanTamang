@@ -4,7 +4,6 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
-
 namespace InsightJournal.Services
 {
     public class PdfExportService
@@ -240,8 +239,9 @@ namespace InsightJournal.Services
 
                     entryColumn.Item().PaddingTop(8);
 
-                    // Entry Content
-                    entryColumn.Item().Text(entry.Content)
+                    // Entry Content - STRIP HTML TAGS WITH FORMATTING
+                    var plainTextContent = StripHtmlTagsWithFormatting(entry.Content);
+                    entryColumn.Item().Text(plainTextContent)
                         .FontSize(11)
                         .LineHeight(1.5f)
                         .FontColor(QuestPDF.Helpers.Colors.Grey.Darken2);
@@ -251,6 +251,30 @@ namespace InsightJournal.Services
                     {
                         entryColumn.Item().PaddingTop(8);
                         entryColumn.Item().Text($"Tags: {entry.Tags}")
+                            .FontSize(9)
+                            .Italic()
+                            .FontColor(QuestPDF.Helpers.Colors.Blue.Medium);
+                    }
+
+                    // Mood (if present)
+                    if (!string.IsNullOrWhiteSpace(entry.PrimaryMood))
+                    {
+                        entryColumn.Item().PaddingTop(6);
+                        var moodText = $"Mood: {entry.PrimaryMood}";
+                        if (!string.IsNullOrWhiteSpace(entry.SecondaryMood1))
+                        {
+                            moodText += $", {entry.SecondaryMood1}";
+                        }
+                        if (!string.IsNullOrWhiteSpace(entry.SecondaryMood2))
+                        {
+                            moodText += $", {entry.SecondaryMood2}";
+                        }
+                        if (!string.IsNullOrWhiteSpace(entry.MoodCategory))
+                        {
+                            moodText += $" ({entry.MoodCategory})";
+                        }
+
+                        entryColumn.Item().Text(moodText)
                             .FontSize(9)
                             .Italic()
                             .FontColor(QuestPDF.Helpers.Colors.Blue.Medium);
@@ -283,6 +307,51 @@ namespace InsightJournal.Services
             if (entry != sortedEntries.Last())
             {
                 contentColumn.Item().PaddingVertical(5);
+            }
+        }
+
+        private string StripHtmlTagsWithFormatting(string htmlContent)
+        {
+            if (string.IsNullOrWhiteSpace(htmlContent))
+                return string.Empty;
+
+            try
+            {
+                var text = htmlContent;
+
+                // Replace block-level elements with line breaks
+                text = System.Text.RegularExpressions.Regex.Replace(text, @"</p>", "\n\n", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                text = System.Text.RegularExpressions.Regex.Replace(text, @"<br\s*/?>", "\n", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                text = System.Text.RegularExpressions.Regex.Replace(text, @"</div>", "\n", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                text = System.Text.RegularExpressions.Regex.Replace(text, @"</h[1-6]>", "\n\n", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                text = System.Text.RegularExpressions.Regex.Replace(text, @"</li>", "\n", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                text = System.Text.RegularExpressions.Regex.Replace(text, @"<li>", "• ", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                text = System.Text.RegularExpressions.Regex.Replace(text, @"</blockquote>", "\n", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+                // Remove all remaining HTML tags
+                text = System.Text.RegularExpressions.Regex.Replace(text, "<.*?>", string.Empty);
+
+                // Replace HTML entities
+                text = text.Replace("&nbsp;", " ");
+                text = text.Replace("&amp;", "&");
+                text = text.Replace("&lt;", "<");
+                text = text.Replace("&gt;", ">");
+                text = text.Replace("&quot;", "\"");
+                text = text.Replace("&#39;", "'");
+                text = text.Replace("&apos;", "'");
+
+                // Clean up excessive whitespace while preserving paragraph breaks
+                text = System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " "); // Multiple spaces to single space
+                text = System.Text.RegularExpressions.Regex.Replace(text, @" \n", "\n"); // Remove trailing spaces before newlines
+                text = System.Text.RegularExpressions.Regex.Replace(text, @"\n ", "\n"); // Remove leading spaces after newlines
+                text = System.Text.RegularExpressions.Regex.Replace(text, @"\n{3,}", "\n\n"); // Max 2 consecutive newlines
+
+                return text.Trim();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error stripping HTML tags from content");
+                return htmlContent; // Return original if stripping fails
             }
         }
 
@@ -328,7 +397,9 @@ namespace InsightJournal.Services
 
             try
             {
-                return text.Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
+                // Strip HTML tags first
+                var plainText = StripHtmlTagsWithFormatting(text);
+                return plainText.Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
             }
             catch (Exception ex)
             {
