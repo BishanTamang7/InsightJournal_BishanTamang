@@ -305,6 +305,9 @@
     [Parameter]
     public int EntryId { get; set; }
 
+    [SupplyParameterFromQuery(Name = "from")]
+    public string? FromPage { get; set; }
+
     private JournalEntry? entry;
     private string title = "";
     private string content = "";
@@ -510,7 +513,8 @@
             successMessage = "Entry updated successfully!";
 
             await Task.Delay(1000);
-            Navigation.NavigateTo("/journal");
+            // After successful update, go back to view entry
+            Navigation.NavigateTo($"/viewentry/{entry.Id}?from={FromPage ?? "journal"}");
         }
         catch (Exception ex)
         {
@@ -540,7 +544,7 @@
         try
         {
             await JournalService.DeleteEntryAsync(entry.Id);
-            Navigation.NavigateTo("/journal");
+            NavigateBack();
         }
         catch (Exception)
         {
@@ -552,6 +556,12 @@
 
     private void Cancel()
     {
-        Navigation.NavigateTo("/journal");
+        NavigateBack();
+    }
+
+    private void NavigateBack()
+    {
+        // Always navigate back to view entry page when canceling/deleting
+        Navigation.NavigateTo($"/viewentry/{EntryId}?from={FromPage ?? "journal"}");
     }
 }

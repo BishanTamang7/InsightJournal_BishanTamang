@@ -4,11 +4,11 @@
 @inject JournalService JournalService
 @inject NavigationManager Navigation
 
-<PageTitle>@(isEditMode ? "Edit Today's Entry" : "New Entry")</PageTitle>
+<PageTitle>New Entry</PageTitle>
 
 <div class="entry-container">
     <div class="entry-header">
-        <h2>@(isEditMode ? "Edit Today's Entry" : "New Entry")</h2>
+        <h2>New Entry</h2>
         <p class="date-display">@DateTime.Today.ToString("dddd, MMMM dd, yyyy")</p>
     </div>
 
@@ -71,7 +71,7 @@
             </div>
         </div>
 
-        <!-- Secondary Moods - MOVED UP -->
+        <!-- Secondary Moods -->
         <div class="form-group">
             <label>Secondary Moods (Optional)</label>
             <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
@@ -131,7 +131,7 @@
             }
         </div>
 
-        <!-- Manual Category Selector - MOVED DOWN -->
+        <!-- Manual Category Selector -->
         <div class="form-group">
             <label>Category <span style="color: #ef4444;">*</span></label>
             <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
@@ -246,55 +246,14 @@
                          ContentChanged="@OnContentChanged" />
         </div>
 
-        <!-- Timestamps (if editing) -->
-        @if (isEditMode && existingEntry != null)
-        {
-            <div class="timestamps-display">
-                <p><strong>Created:</strong> @existingEntry.CreatedAt.ToString("MMM dd, yyyy h:mm tt")</p>
-                <p><strong>Last Updated:</strong> @existingEntry.UpdatedAt.ToString("MMM dd, yyyy h:mm tt")</p>
-            </div>
-        }
-
         <!-- Action Buttons -->
         <div class="button-group">
-            @if (isEditMode)
-            {
-                <button class="btn btn-success" @onclick="UpdateEntry">
-                    ✏️ Update Entry
-                </button>
-                <button class="btn btn-danger" @onclick="ShowDeleteConfirm">
-                    🗑️ Delete Entry
-                </button>
-            }
-            else
-            {
-                <button class="btn btn-primary" @onclick="CreateEntry">
-                    💾 Save Entry
-                </button>
-            }
+            <button class="btn btn-primary" @onclick="CreateEntry">
+                💾 Save Entry
+            </button>
         </div>
     </div>
 </div>
-
-<!-- Delete Confirmation Modal -->
-@if (showDeleteModal)
-{
-    <div class="modal-overlay" @onclick="CancelDelete">
-        <div class="modal-content" @onclick:stopPropagation>
-            <h3>Delete Today's Entry</h3>
-            <p>Are you sure you want to delete "<strong>@title</strong>"?</p>
-            <p class="warning-text">This action cannot be undone.</p>
-            <div class="modal-buttons">
-                <button class="btn btn-danger" @onclick="ConfirmDelete" disabled="@isDeleting">
-                    @(isDeleting ? "Deleting..." : "Yes, Delete")
-                </button>
-                <button class="btn btn-secondary" @onclick="CancelDelete" disabled="@isDeleting">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
-}
 
 @code {
     private string title = "";
@@ -311,45 +270,19 @@
     private string? secondaryMood2 = null;
     private string selectedCategory = ""; // Manual category selection
 
-    // Edit mode
-    private bool isEditMode = false;
+    // Check if entry exists (for validation only)
     private JournalEntry? existingEntry = null;
-
-    // Delete confirmation
-    private bool showDeleteModal = false;
-    private bool isDeleting = false;
 
     // Quill editor reference
     private QuillEditor? quillEditor;
 
     protected override async Task OnInitializedAsync()
     {
-        // Check if today's entry already exists
+        // Check if today's entry already exists (for validation only)
         existingEntry = await JournalService.GetTodayEntryAsync();
 
-        if (existingEntry != null)
-        {
-            // Entry exists - load it for editing
-            isEditMode = true;
-            LoadExistingEntry();
-        }
-    }
-
-    private void LoadExistingEntry()
-    {
-        if (existingEntry == null) return;
-
-        title = existingEntry.Title;
-        content = existingEntry.Content;
-
-        var allTags = TagService.ParseTags(existingEntry.Tags);
-        selectedTags = allTags.Where(t => TagService.PredefinedTags.Contains(t)).ToList();
-        customTags = allTags.Where(t => !TagService.PredefinedTags.Contains(t)).ToList();
-
-        primaryMood = existingEntry.PrimaryMood ?? "";
-        secondaryMood1 = existingEntry.SecondaryMood1;
-        secondaryMood2 = existingEntry.SecondaryMood2;
-        selectedCategory = existingEntry.MoodCategory ?? ""; // Load existing category
+        // Don't pre-fill the form - always show blank
+        // The restriction will be enforced when saving
     }
 
     private void OnContentChanged(string html)
@@ -490,7 +423,7 @@
                 primaryMood,
                 secondaryMood1,
                 secondaryMood2,
-                selectedCategory // Pass manual category
+                selectedCategory
             );
 
             successMessage = "Entry created successfully!";
@@ -498,110 +431,13 @@
             await Task.Delay(1000);
             Navigation.NavigateTo("/");
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
             errorMessage = ex.Message;
-        }
-    }
-
-    private async Task UpdateEntry()
-    {
-        errorMessage = null;
-        successMessage = null;
-
-        if (existingEntry == null) return;
-
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            errorMessage = "Please enter a title for your entry.";
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(content))
-        {
-            errorMessage = "Please write some content for your entry.";
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(primaryMood))
-        {
-            errorMessage = "Please select your primary mood.";
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(selectedCategory))
-        {
-            errorMessage = "Please select a category.";
-            return;
-        }
-
-        // Validate tags - at least one tag required
-        var allTags = selectedTags.Concat(customTags).ToList();
-        if (!allTags.Any())
-        {
-            errorMessage = "Please select or add at least one tag.";
-            return;
-        }
-
-        try
-        {
-            // Pass manual category to service
-            await JournalService.UpdateEntryAsync(
-                existingEntry.Id,
-                title,
-                content,
-                allTags,
-                primaryMood,
-                secondaryMood1,
-                secondaryMood2,
-                selectedCategory // Pass manual category
-            );
-
-            successMessage = "Entry updated successfully!";
-
-            await Task.Delay(1000);
-            Navigation.NavigateTo("/");
         }
         catch (Exception ex)
         {
             errorMessage = ex.Message;
         }
-    }
-
-    private void ShowDeleteConfirm()
-    {
-        showDeleteModal = true;
-    }
-
-    private void CancelDelete()
-    {
-        if (!isDeleting)
-        {
-            showDeleteModal = false;
-        }
-    }
-
-    private async Task ConfirmDelete()
-    {
-        if (existingEntry == null) return;
-
-        isDeleting = true;
-
-        try
-        {
-            await JournalService.DeleteEntryAsync(existingEntry.Id);
-            Navigation.NavigateTo("/");
-        }
-        catch (Exception)
-        {
-            isDeleting = false;
-            showDeleteModal = false;
-            errorMessage = "Failed to delete entry. Please try again.";
-        }
-    }
-
-    private void Cancel()
-    {
-        Navigation.NavigateTo("/");
     }
 }
