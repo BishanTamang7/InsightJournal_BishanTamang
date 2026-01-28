@@ -32,7 +32,7 @@ namespace InsightJournal.Services
             return !string.IsNullOrEmpty(Preferences.Get(PasswordKey, string.Empty));
         }
 
-        // Set a new password (hashed)
+        // Set a new password (hashed with BCrypt)
         public bool SetPassword(string password)
         {
             if (string.IsNullOrWhiteSpace(password))
@@ -43,7 +43,8 @@ namespace InsightJournal.Services
 
             try
             {
-                string hashedPassword = HashPassword(password);
+                // Hash the password using BCrypt with default work factor (11)
+                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
                 Preferences.Set(PasswordKey, hashedPassword);
                 _logger.LogInformation("Password set successfully");
                 return true;
@@ -55,7 +56,7 @@ namespace InsightJournal.Services
             }
         }
 
-        // Verify password
+        // Verify password using BCrypt
         public bool VerifyPassword(string password)
         {
             if (string.IsNullOrWhiteSpace(password))
@@ -71,8 +72,8 @@ namespace InsightJournal.Services
                     return false;
                 }
 
-                string hashedInput = HashPassword(password);
-                return hashedInput == storedHash;
+                // Verify password using BCrypt
+                return BCrypt.Net.BCrypt.Verify(password, storedHash);
             }
             catch (Exception ex)
             {
@@ -99,17 +100,6 @@ namespace InsightJournal.Services
             Preferences.Remove(PasswordKey);
             Preferences.Remove(PasswordEnabledKey);
             _logger.LogInformation("Password removed");
-        }
-
-        // Simple hash function (using SHA256)
-        private string HashPassword(string password)
-        {
-            using (var sha256 = System.Security.Cryptography.SHA256.Create())
-            {
-                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(password);
-                byte[] hash = sha256.ComputeHash(bytes);
-                return Convert.ToBase64String(hash);
-            }
         }
     }
 }
